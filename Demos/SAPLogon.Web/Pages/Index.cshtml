@@ -1,0 +1,36 @@
+﻿@page
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IndexModel
+
+@{
+    <meta name="viewport" content="width=device-width" />
+    ViewData["Title"] = "SAP Logon";
+}
+
+<div class="text-center">
+    <form method="post">
+        <table>
+            <tr>
+                <td>Cert ID: </td>
+                <td>
+                    @{
+                        List<SelectListItem> listItems = new List<SelectListItem>();
+                        listItems.Add(new SelectListItem {Text = "SSO (DSA 1024)", Value = "SSO"});
+                        listItems.Add(new SelectListItem {Text = "SSO-RSA (RSA 2048)", Value = "SSO-RSA"});
+                    }
+                    @Html.DropDownListFor(Model => Model.SysID, listItems, "-- Select Certificate --")
+                </td>
+            </tr>
+            <tr>
+                <td>User ID: </td>
+                <td><input type="text" id="UserID" name="UserID" value="DEMOUSER" readonly /></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" value="Submit" asp-page-handler="Submit" /></td>
+            </tr>
+        </table>
+        <hr />
+    </form>
+    @Model.txtTicket
+</div>
