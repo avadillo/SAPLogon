@@ -14,19 +14,13 @@ namespace SAPLogon.Pages
                 return;
             }
             string url = @"https://sapnwa.aptus.mx/sap/bc/gui/sap/its/webgui";
-            /*
-             if (userid == null && tx == null)
-             {
-                 return;
-             }
-            */
+
             Message = "Redirecting...";
             string ticket;
-            Ticket t = new();
-            t.SysID = "SSO-RSA";
-           
-            if (user == null) t.User = "DEMOUSER"; else t.User = user;
-            t.PortalUser = t.User.ToLower();
+            Ticket t = new() {
+                SysID = "SSO-RSA",
+                User = (user == "") ? user: "DEMOUSER"
+            };
             ticket = t.Create();
 
             var cookieOptions = new CookieOptions

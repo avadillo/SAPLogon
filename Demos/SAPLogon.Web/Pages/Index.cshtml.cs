@@ -19,7 +19,7 @@ namespace SAPLogon.Pages
         }
 
         public void OnPostSubmit() {
-            if (SysID == "" ) {
+            if (SysID is null || SysID == "" ) {
                 txtTicket = "Please select a Valid Certificate";
                 return;
             }
@@ -27,8 +27,10 @@ namespace SAPLogon.Pages
             if (SysID[..3] != "SSO") return;
             Ticket t = new() {
                 SysID = SysID.ToUpper(),
-                User = "DEMOUSER", //fixed user for the DEMO
-                PortalUser = UserID.ToLower()
+                SysClient = "000",
+                User = "DEMOUSER",
+                ValidTimeMin = 2,
+                Language = "E"
             };
             txtTicket = t.Create();
 
@@ -55,7 +57,7 @@ namespace SAPLogon.Pages
             try { Response.Cookies.Delete("SAP_SESSIONID_NWA_752", sapCookieOptions); } catch { }
 
             // Once the cookie is set, redirect to the SAP system:
-            string url = @"http://sapnwa.aptus.mx/sap/bc/gui/sap/its/webgui";
+            string url = @"https://sapnwa.aptus.mx/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
             Response.Redirect(url);
         }
     }

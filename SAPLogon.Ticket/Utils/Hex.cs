@@ -97,6 +97,4 @@ namespace SAPTools.Utils
             return result.ToString();
         }
     }
-
-
 }

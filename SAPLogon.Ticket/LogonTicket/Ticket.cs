@@ -4,25 +4,31 @@ using System.Security.Cryptography.Pkcs;
 using System.Text;
 
 namespace SAPTools.LogonTicket;
-public class Ticket {  
-        public string User { get; set; } = "";
-        public string? PortalUser { get; set; }
-        public string SysID { get; set; } = "";
-        public string SysClient { get; set; } = "000";
-        public string CreateTime { get; set; } = "000000000000";
-        public bool IncludeCert { get; set; } = false;
-                                              
-        public int ValidTime { get; set; } = 0;
-        public int ValidTimeMin { get; set; } = 0;
-        
-        private readonly string codepage = "4103";
-        private Encoding encoding = Encoding.Unicode;
-        protected List<InfoUnit> InfoUnits = new();
+    public class Ticket {
+    public string User { get; set; } = "";
+    public string? PortalUser { get; set; }
+    public string SysID { get; set; } = "";
+    public string SysClient { get; set; } = "000";
+    public string? Language { get; set; }
 
-        public string mTicket = string.Empty;
-        protected byte[]? mSignature;
-        protected byte[]? rawTicket;
-        private static readonly byte[] NO_CERTS = {};
+    /* Properties for the receiver system (Assertion Tickets) */ 
+    public string? RcptSysID { get; set; } 
+    public string? RcptSysClient { get; set; }
+        
+    public string CreateTime { get; set; } = "000000000000";
+    public bool IncludeCert { get; set; } = false;
+                                              
+    public int? ValidTime { get; set; }
+    public int ValidTimeMin { get; set; } = 0;
+       
+    private readonly string codepage = "4103";
+    private Encoding encoding = Encoding.Unicode;
+    protected List<InfoUnit> InfoUnits = new();
+
+    public string mTicket = string.Empty;
+    protected byte[]? mSignature;
+    protected byte[]? rawTicket;
+    private static readonly byte[] NO_CERTS = {};
 
     public string Create() {
         encoding = codepage switch {
@@ -83,24 +89,38 @@ public class Ticket {
         MemoryStream baos = new();
         _ = new StreamWriter(baos, encoding);
 
-        int ValidTimeTotal = ValidTime * 60 + ValidTimeMin;
-        if (ValidTimeTotal == 0) ValidTimeTotal = 480;
+        if ( (ValidTime!=null?ValidTime:0) *60 + ValidTimeMin == 0) ValidTimeMin = 2; // Assertion Tickets have 2 mins validity
 
         if (PortalUser != null) 
             InfoUnits.Add(new InfoUnit(InfoUnit.ID_PORTAL_USER, 
                 encoding.GetBytes("portal:"+PortalUser)));
         InfoUnits.Add(new InfoUnit(InfoUnit.ID_AUTHSCHEME, 
-            encoding.GetBytes("basicauthentication")));
+            encoding.GetBytes("default")));
         InfoUnits.Add(new InfoUnit(InfoUnit.ID_USER, 
             encoding.GetBytes(User)));
         InfoUnits.Add(new InfoUnit(InfoUnit.ID_CREATE_CLIENT, 
             encoding.GetBytes(SysClient)));
         InfoUnits.Add(new InfoUnit(InfoUnit.ID_CREATE_NAME, 
             encoding.GetBytes(SysID)));
+        if (Language != null) 
+            InfoUnits.Add(new InfoUnit(InfoUnit.ID_LANGUAGE, 
+                encoding.GetBytes(Language)));
+        // Assertion Tickets
+        if(RcptSysID != null && RcptSysClient != null) {
+            InfoUnits.Add(new InfoUnit(InfoUnit.ID_RECIPIENT_CLIENT,
+                Encoding.ASCII.GetBytes(RcptSysClient)));
+            InfoUnits.Add(new InfoUnit(InfoUnit.ID_RECIPIENT_SID,
+                Encoding.ASCII.GetBytes(RcptSysID)));
+            // Do not cache the ticket
+            InfoUnits.Add(new InfoUnit(InfoUnit.ID_FLAGS, [1]));
+        }
         InfoUnits.Add(new InfoUnit(InfoUnit.ID_CREATE_TIME, 
             encoding.GetBytes(System.DateTime.UtcNow.ToString("yyyyMMddHHmm"))));
-        InfoUnits.Add(new InfoUnit(InfoUnit.ID_VALID_TIME,
-            InfoUnit.Int32ToBytes(ValidTimeTotal)));
+        InfoUnits.Add(new InfoUnit(InfoUnit.ID_VALID_TIME_MIN,
+            InfoUnit.Int32ToBytes(ValidTimeMin)));
+        if(ValidTime != null)
+            InfoUnits.Add(new InfoUnit(InfoUnit.ID_VALID_TIME,
+                InfoUnit.Int32ToBytes(ValidTime ?? 0)));
         InfoUnits.Add(new InfoUnit(InfoUnit.ID_USER_UTF,
             Encoding.UTF8.GetBytes(User)));
     }
