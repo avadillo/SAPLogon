@@ -16,12 +16,11 @@ namespace SAPLogon.Pages
             string url = @"https://sapnwa.aptus.mx/sap/bc/gui/sap/its/webgui";
 
             Message = "Redirecting...";
-            string ticket;
+
             Ticket t = new() {
                 SysID = "SSO-RSA",
                 User = (user == "") ? user: "DEMOUSER"
             };
-            ticket = t.Create();
 
             var cookieOptions = new CookieOptions
             {
@@ -43,7 +42,7 @@ namespace SAPLogon.Pages
 
             try { Response.Cookies.Delete("MYSAPSSO2", cookieOptions); } catch { }
             try { Response.Cookies.Delete("SAP_SESSIONID_NWA_752", cookieOptions2); } catch { }
-            Response.Cookies.Append("MYSAPSSO2", ticket, cookieOptions);
+            Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
             
             if (tx is not null)
                 url = url + "?~transaction=" + tx.ToUpper(); 

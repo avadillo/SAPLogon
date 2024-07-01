@@ -1,10 +1,10 @@
 ﻿@page
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-@model IndexModel
+@model WSModel
 
 @{
     <meta name="viewport" content="width=device-width" />
-    ViewData["Title"] = "SAP Logon";
+    ViewData["Title"] = "SAP Assertion Ticket";
 }
 
 <div class="text-center">
@@ -15,15 +15,11 @@
                 <td>
                     @{
                         List<SelectListItem> listItems = new List<SelectListItem>();
-                        listItems.Add(new SelectListItem {Text = "SSO (DSA 1024)", Value = "SSO"});
-                        listItems.Add(new SelectListItem {Text = "SSO-RSA (RSA 2048)", Value = "SSO-RSA"});
+                        listItems.Add(new SelectListItem { Text = "SSO (DSA 1024)", Value = "SSO" });
+                        listItems.Add(new SelectListItem { Text = "SSO-RSA (RSA 2048)", Value = "SSO-RSA" });
                     }
                     @Html.DropDownListFor(Model => Model.SysID, listItems, "-- Select Certificate --")
                 </td>
-            </tr>
-            <tr>
-                <td>User ID: </td>
-                <td><input type="text" id="UserID" name="UserID" value="DEMOUSER" readonly /></td>
             </tr>
             <tr>
                 <td></td>
@@ -32,5 +28,7 @@
         </table>
         <hr />
     </form>
-    @Model.TxtStatus
+
+    @Html.TextAreaFor(Model => Model.TxtStatus, new { style = "width: 100%; font-family: monospace, monospace; font-size: 12px", rows = 50, @readonly = true })
+
 </div>
