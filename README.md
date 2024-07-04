@@ -2,7 +2,7 @@
 
 This app creates Logon Tickets to be interpreded by SAP NetWeaver Systems. See [Using Logon Tickets](https://help.sap.com/doc/saphelp_nw75/7.5.5/en-US/4d/a5ddc832211dcde10000000a42189c/content.htm)
 
-This app supports two kind of certificates:
+This app supports two kinds of certificates:
 * DSA: Can have keys up to 1024-bit and it is obsolete (SAP Standard)
 * RSA: More secure
 

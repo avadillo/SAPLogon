@@ -19,7 +19,7 @@ namespace SAPLogon.Pages
 
             Ticket t = new() {
                 SysID = "SSO-RSA",
-                User = (user == "") ? user: "DEMOUSER"
+                User = (user == "") ? "DEMOUSER":user 
             };
 
             var cookieOptions = new CookieOptions
