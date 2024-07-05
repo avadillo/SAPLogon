@@ -6,20 +6,21 @@ namespace SAPLogon.Pages
     public class webguiModel : PageModel
     {
         public string Message { get; set; } = string.Empty;
-        public void OnGet(string user, string tx)
+        public void OnGet(string? user, string tx)
         {
-            if (user.ToUpper() == "SAP*" || user.ToUpper() == "DDIC")
+            user ??= "DEMOUSER";
+            if (user is null || user.ToUpper() == "SAP*" || user.ToUpper() == "DDIC")
             {
                 Message = "User not allowed";
                 return;
             }
-            string url = @"https://sapnwa.aptus.mx/sap/bc/gui/sap/its/webgui";
+            string url = @"https://sapnwa.saptools.mx/sap/bc/gui/sap/its/webgui";
 
             Message = "Redirecting...";
 
             Ticket t = new() {
                 SysID = "SSO-RSA",
-                User = (user == "") ? "DEMOUSER":user 
+                User = user
             };
 
             var cookieOptions = new CookieOptions
@@ -28,7 +29,7 @@ namespace SAPLogon.Pages
                 Path = "/",
                 Secure = true,
                 HttpOnly = true,
-                Domain = "aptus.mx",
+                Domain = "saptools.mx",
                 SameSite = SameSiteMode.Lax
             };
             var cookieOptions2 = new CookieOptions

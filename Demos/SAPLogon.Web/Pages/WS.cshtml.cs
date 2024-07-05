@@ -42,7 +42,7 @@ public class WSModel : PageModel
             RcptSysClient = "752"
         }; 
 
-        Uri uri = new (@"https://sapnwa.aptus.mx/sap/bc/srt/rfc/sap/cat_ping/752/zcatping/test");
+        Uri uri = new (@"https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/cat_ping/752/zcatping/test");
         TxtStatus  = await GetInfoAsync(uri, t.Create());
 
         return Page();

@@ -37,14 +37,14 @@ namespace SAPLogon.Pages
                 Path = "/",
                 Secure =  true,
                 HttpOnly = true,
-                Domain = ".aptus.mx",
+                Domain = ".saptools.mx",
                 SameSite = SameSiteMode.Lax
             };
 
             CookieOptions sapCookieOptions = new() {
                 Path = "/",
                 Secure = true,
-                Domain = "sapnwa.aptus.mx",
+                Domain = "sapnwa.saptools.mx",
                 SameSite = SameSiteMode.Lax
             };
 
@@ -56,7 +56,7 @@ namespace SAPLogon.Pages
             try { Response.Cookies.Delete("SAP_SESSIONID_NWA_752", sapCookieOptions); } catch { }
 
             // Once the cookie is set, redirect to the SAP system:
-            string url = @"https://sapnwa.aptus.mx/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
+            string url = @"https://sapnwa.saptools.mx/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
             Response.Redirect(url);
         }
     }
