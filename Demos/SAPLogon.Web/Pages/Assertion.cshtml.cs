@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
@@ -8,8 +8,7 @@ using System.Xml.Linq;
 
 namespace SAPLogon.Pages;
 
-public class WSModel : PageModel
-{
+public class WSModel : PageModel {
     [BindProperty]
     public string? SysID { get; set; }
     [BindProperty]
@@ -25,7 +24,7 @@ public class WSModel : PageModel
 
     public async Task<IActionResult> OnPostSubmit() {
         if (String.IsNullOrEmpty(SysID) || !SysID.StartsWith("SSO")) {
-            TxtStatus = "Please select a Valid Certificate";
+            TxtStatus = "Please select a valid certificate";
             return Page();
         }
 
@@ -61,7 +60,7 @@ public class WSModel : PageModel
             using(HttpContent content = new StringContent(soapString, Encoding.UTF8, "text/xml")) {
                 _ = sb.AppendLine($"Calling {uri}")
                   .AppendLine("\nRequest Headers:")
-                  .AppendJoin("\n", client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}"))
+                  .AppendLine(client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}"))
                   .AppendLine("\nRequest Body:")
                   .AppendLine(soapString);
 
@@ -77,7 +76,7 @@ public class WSModel : PageModel
 
                 // Append the response headers and body to the StringBuilder
                 _ = sb.AppendLine("\nResponse Headers:")
-                      .AppendJoin("\n", response.Headers.Select(header => $"{header.Key}: {string.Join(" ", header.Value)}"))
+                      .AppendLine(response.Headers.Select(header => $"{header.Key}: {string.Join(" ", header.Value)}"))
                       .AppendLine("\nResponse Body:")
                       .AppendLine(responseXML);
 
