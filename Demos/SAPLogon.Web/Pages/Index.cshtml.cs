@@ -33,18 +33,22 @@ namespace SAPLogon.Pages
                 Language = "E"
             };
 
+            string domain = "saptools.mx"; // Default domain
+            List<string> values = [.. HttpContext.Request.Host.Value.Split('.')];
+            if(values.Count >= 2) domain = values.TakeLast(2).ToList().Aggregate((a, b) => a + "." + b);
+
             CookieOptions cookieOptions = new() {
                 Path = "/",
                 Secure =  true,
                 HttpOnly = true,
-                Domain = ".saptools.mx",
+                Domain = $".{domain}",
                 SameSite = SameSiteMode.Lax
             };
 
             CookieOptions sapCookieOptions = new() {
                 Path = "/",
                 Secure = true,
-                Domain = "sapnwa.saptools.mx",
+                Domain = $"sapnwa.{domain}",
                 SameSite = SameSiteMode.Lax
             };
 
@@ -56,7 +60,7 @@ namespace SAPLogon.Pages
             try { Response.Cookies.Delete("SAP_SESSIONID_NWA_752", sapCookieOptions); } catch { }
 
             // Once the cookie is set, redirect to the SAP system:
-            string url = @"https://sapnwa.saptools.mx/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
+            string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
             Response.Redirect(url);
         }
     }

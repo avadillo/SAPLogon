@@ -9,44 +9,42 @@ namespace SAPLogon.Pages
         public void OnGet(string? user, string tx)
         {
             user ??= "DEMOUSER";
-            if (user is null || user.ToUpper() == "SAP*" || user.ToUpper() == "DDIC")
-            {
+            if(user.ToUpper() == "SAP*" || user.ToUpper() == "DDIC") {
                 Message = "User not allowed";
                 return;
             }
-            string url = @"https://sapnwa.saptools.mx/sap/bc/gui/sap/its/webgui";
-
-            Message = "Redirecting...";
 
             Ticket t = new() {
                 SysID = "SSO-RSA",
                 User = user
             };
 
-            var cookieOptions = new CookieOptions
-            {
+            string domain = "saptools.mx"; // Default domain
+            List<string> values = [.. HttpContext.Request.Host.Value.Split('.')];
+            if(values.Count >= 2) domain = values.TakeLast(2).ToList().Aggregate((a, b) => a + "." + b);
+
+            var cookieOptions = new CookieOptions {
                 //Expires = DateTime.Now.AddMinutes(5),
                 Path = "/",
                 Secure = true,
                 HttpOnly = true,
-                Domain = "saptools.mx",
+                Domain = $".{domain}",
                 SameSite = SameSiteMode.Lax
             };
-            var cookieOptions2 = new CookieOptions
-            {
+            var cookieOptions2 = new CookieOptions {
                 //Expires = DateTime.Now.AddHours(10),
                 Path = "/",
                 Secure = true,
-                //Domain = "sapnwa.aptus.mx",
+                Domain = $"sapnwa.{domain}",
                 SameSite = SameSiteMode.None
             };
 
             try { Response.Cookies.Delete("MYSAPSSO2", cookieOptions); } catch { }
             try { Response.Cookies.Delete("SAP_SESSIONID_NWA_752", cookieOptions2); } catch { }
             Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
-            
-            if (tx is not null)
-                url = url + "?~transaction=" + tx.ToUpper(); 
+
+            string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
+            if (tx is not null) url += $"?~transacttion={tx.ToUpper()}"; 
 
             Response.Redirect(url);
         }
