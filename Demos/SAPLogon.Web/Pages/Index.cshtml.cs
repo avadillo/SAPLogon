@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
@@ -22,7 +22,7 @@ public class IndexModel : PageModel {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
 
         if (String.IsNullOrWhiteSpace(SysID) || !SysID.StartsWith("SSO")) {
-            TxtStatus = "Please select a Valid Certificate";
+            TxtStatus = "Please select a valid certificate";
             return;
         }
 
