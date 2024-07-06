@@ -2,7 +2,7 @@
 
 namespace SAPTools.LogonTicket;
 
-public class InfoUnit {
+public class InfoUnit(int id, byte[] data) {
     public const int ID_USER = 0x1;
     public const int ID_CREATE_CLIENT = 0x2;
     public const int ID_CREATE_NAME = 0x3;
@@ -23,70 +23,43 @@ public class InfoUnit {
     public const int ID_RECIPIENT_SID = 0x10;
     public const int ID_PORTAL_USER = 0x20;
 
-    public int ID { get; set; }
-    private byte[]  Content { get; set; }
+    public int ID { get; set; } = id;
+    private byte[] Content { get; set; } = data;
 
-    public InfoUnit(int id, byte[] data) {
-        ID = id;
-        Content = data;
-    }
-
-    public string ToString(Encoding encoding) => 
-        BytesToString(Content, encoding);
-
+    public string ToString(Encoding encoding) => BytesToString(Content, encoding);
     public int ToInt => BytesToInt(Content);
 
     public virtual void WriteTo(Stream @out) {
-        @out.WriteByte((byte)ID);
-        @out.WriteByte((byte)(Content.Length >> 8 & 255));
-        @out.WriteByte((byte)(Content.Length & 255));
-        @out.Write(Content, 0, Content.Length);
+        int totalLength = 3 + Content.Length; // 1 byte for ID and 2 bytes for Content.Length
+        byte[] buffer = new byte[totalLength];
+
+        buffer[0] = (byte)ID;
+        buffer[1] = (byte)(Content.Length >> 8 & 255);
+        buffer[2] = (byte)(Content.Length & 255);
+        Array.Copy(Content, 0, buffer, 3, Content.Length);
+
+        @out.Write(buffer, 0, buffer.Length);
     }
 
-    public static int BytesToInt(byte[] buffer) =>
-        BytesToInt(buffer, 0, buffer.Length);
+    public static int BytesToInt(byte[] buffer) => BytesToInt(buffer, 0, buffer.Length);
 
     public static int BytesToInt(byte[] buffer, int offset, int length) {
-        int x = 0;
-        for (int i = 0; i < length; ++offset) {
-            int z = buffer[offset];
-            if (z < 0) z += 256;
-            x = (x << 8) + z;
-            ++i;
+        int result = 0;
+        for(int i = 0; i < length; i++) {
+            result = (result << 8) + (buffer[offset + i] & 0xFF);
         }
-        return x;
+        return result;
     }
 
-    public static byte[] Int32ToBytes(int i) {
-        byte[] b = new byte[4];
-        b[3] = (byte)(i % 256);
-        i /= 256;
-        b[2] = (byte)(i % 256);
-        i /= 256;
-        b[1] = (byte)(i % 256);
-        i /= 256;
-        b[0] = (byte)(i % 256);
-        return b;
+    public static byte[] Int32ToBytes(int n) {
+        byte[] bytes = BitConverter.GetBytes(n);
+        if(BitConverter.IsLittleEndian)  Array.Reverse(bytes);
+        return bytes;
     }
 
     public static string BytesToString(byte[] buffer, Encoding encoding) =>
         BytesToString(buffer, 0, buffer.Length, encoding);
 
-    public static string BytesToString(byte[] buffer, int offset, int length, Encoding encoding) {
-        MemoryStream ba = new(buffer, offset, length);
-        StreamReader @in;
-        @in = new StreamReader(ba, encoding);
-
-        StringBuilder s = new();
-
-        try {
-            for (int c = @in.Read(); c > 0; c = @in.Read()) 
-                _ = s.Append((char)c);
-           
-        } catch (IOException e) {
-            Console.WriteLine(e.ToString());
-            Console.Write(e.StackTrace);
-        }
-        return s.ToString();
-    }
+    public static string BytesToString(byte[] buffer, int offset, int length, Encoding encoding) => 
+        encoding.GetString(buffer, offset, length);
 }

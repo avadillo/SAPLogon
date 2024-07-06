@@ -1,52 +1,46 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SAPTools.LogonTicket;
 
-namespace SAPLogon.Pages
-{
-    public class webguiModel : PageModel
-    {
-        public string Message { get; set; } = string.Empty;
-        public void OnGet(string? user, string tx)
-        {
-            user ??= "DEMOUSER";
-            if(user.ToUpper() == "SAP*" || user.ToUpper() == "DDIC") {
-                Message = "User not allowed";
-                return;
-            }
+namespace SAPLogon.Pages;
 
-            Ticket t = new() {
-                SysID = "SSO-RSA",
-                User = user
-            };
+public class WebguiModel : PageModel {
+    private readonly string[] _forbiddenUsers = { "DDIC", "SAP*" };
+    public string Message { get; set; } = "";
 
-            string domain = "saptools.mx"; // Default domain
-            List<string> values = [.. HttpContext.Request.Host.Value.Split('.')];
-            if(values.Count >= 2) domain = values.TakeLast(2).ToList().Aggregate((a, b) => a + "." + b);
+    public void OnGet(string? user, string tx) {
+        string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
+        user = user?.ToUpper() ?? "DEMOUSER";
 
-            var cookieOptions = new CookieOptions {
-                //Expires = DateTime.Now.AddMinutes(5),
-                Path = "/",
-                Secure = true,
-                HttpOnly = true,
-                Domain = $".{domain}",
-                SameSite = SameSiteMode.Lax
-            };
-            var cookieOptions2 = new CookieOptions {
-                //Expires = DateTime.Now.AddHours(10),
-                Path = "/",
-                Secure = true,
-                Domain = $"sapnwa.{domain}",
-                SameSite = SameSiteMode.None
-            };
-
-            try { Response.Cookies.Delete("MYSAPSSO2", cookieOptions); } catch { }
-            try { Response.Cookies.Delete("SAP_SESSIONID_NWA_752", cookieOptions2); } catch { }
-            Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
-
-            string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
-            if (tx is not null) url += $"?~transacttion={tx.ToUpper()}"; 
-
-            Response.Redirect(url);
+        if (_forbiddenUsers.Any(fu => user.Equals(fu, StringComparison.OrdinalIgnoreCase))) {
+            Message = "User not allowed";
+            return;
         }
+
+        Ticket t = new() { SysID = "SSO-RSA", User = user };
+        CookieOptions cookieOptions = new() {
+            Path = "/",
+            Secure = true,
+            Domain = $".{domain}",
+            SameSite = SameSiteMode.Lax
+        };
+
+        // Delete the cookies before setting a new one:
+        DeleteCookie("MYSAPSSO2");
+        DeleteCookie("SAP_SESSIONID_NWA_752");
+        Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
+
+        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
+        if(!String.IsNullOrEmpty(tx)) url += $"?~transaction={tx}";
+
+        Response.Redirect(url);
+    }
+
+    private void DeleteCookie(string cookieName) {
+        try { Response.Cookies.Delete(cookieName); } catch { /* Log or handle the error if necessary */ }
+    }
+
+    private static string GetDomainFromHost(string hostValue) {
+        string[] values = hostValue.Split('.');
+        return values.Length >= 2 ? $"{values[^2]}.{values[^1]}" : "saptools.mx";
     }
 }

@@ -15,7 +15,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Update="Pages\WS.cshtml">
+    <Content Update="Pages\Assertion.cshtml">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
