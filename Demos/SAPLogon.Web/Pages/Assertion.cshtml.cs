@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
+using SAPTools.LogonTicket.Extensions;
 using System.Net;
 using System.Text;
 using System.Xml.Linq;
@@ -30,7 +31,7 @@ public class WSModel : PageModel
         }
 
         // Simplify ticket creation with a method call if applicable
-        Ticket ticket = CreateTicket(SysID.ToUpper(), "000", "DEMOUSER", 2, "E", "NWA", "752");
+        Ticket ticket = CreateTicket(SysID.ToUpper(), "000", "DEMOUSER", SAPLanguage.DE, "NWA", "752");
 
         // Call the SAP Web Service and wait for the response
         Uri uri = new(@"https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/cat_ping/752/zcatping/test");
@@ -39,11 +40,10 @@ public class WSModel : PageModel
         return Page();
     }
 
-    private static Ticket CreateTicket(string sysID, string sysClient, string user, int validTimeMin, string language, string rcptSysID, string rcptSysClient) => new() {
+    private static AssertionTicket CreateTicket(string sysID, string sysClient, string user, SAPLanguage language, string rcptSysID, string rcptSysClient) => new() {
         SysID = sysID,
         SysClient = sysClient,
         User = user,
-        ValidTimeMin = validTimeMin,
         Language = language,
         RcptSysID = rcptSysID,
         RcptSysClient = rcptSysClient

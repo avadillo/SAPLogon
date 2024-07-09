@@ -16,7 +16,10 @@ public class WebguiModel : PageModel {
             return;
         }
 
-        Ticket t = new() { SysID = "SSO-RSA", User = user };
+        LogonTicket t = new() {
+            SysID = "SSO-RSA", SysClient = "000",
+            User = user, PortalUser = "support@saptools.mx" };
+
         CookieOptions cookieOptions = new() {
             Path = "/",
             Secure = true,

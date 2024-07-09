@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
+using SAPTools.LogonTicket.Extensions;
 
 namespace SAPLogon.Pages;
 
@@ -26,13 +27,12 @@ public class IndexModel : PageModel {
             return;
         }
 
-        Ticket ticket = new() {
+        LogonTicket ticket = new() {
             SysID = SysID.ToUpper(),
             SysClient = "000",
             User = "DEMOUSER",
-            ValidTimeMin = 60,
-            ValidTime = 0,     // hours
-            Language = "E"
+            ValidTime = 10,
+            Language = SAPLanguage.EN
         };
 
         CookieOptions cookieOptions = new() {

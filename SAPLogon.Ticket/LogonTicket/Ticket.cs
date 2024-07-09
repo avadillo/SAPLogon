@@ -2,107 +2,80 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
+using SAPTools.LogonTicket.Extensions;
 
 namespace SAPTools.LogonTicket;
 
-public class Ticket {
-    public string User { get; set; } = "";
-    public string? PortalUser { get; set; }
-    public string SysID { get; set; } = "";
-    public string SysClient { get; set; } = "000";
-    public string? Language { get; set; }
+public abstract class Ticket {
+    public required string User { get; set; }
+    public required string SysID { get; set; }
+    public required string SysClient { get; set; }
+    public virtual uint ValidTime { get; set; } = 0;
 
-    /* Properties for the receiver system (Assertion Tickets) */ 
-    public string? RcptSysID { get; set; } 
-    public string? RcptSysClient { get; set; }
-        
-    public string CreateTime { get; set; } = "000000000000";
+    public SAPLanguage Language { get; set; } = SAPLanguage.None;
     public bool IncludeCert { get; set; } = false;
-    public int? ValidTime { get; set; }
-    public int ValidTimeMin { get; set; } = 0;
+    public bool IsRFC { get; set; } = false;
 
-    private readonly string codepage = "4103";
-    private Encoding encoding = Encoding.Unicode;
-    protected List<InfoUnit> InfoUnits = [];
+    private readonly SAPCodepage Codepage = SAPCodepage.UTF8;
+    private Encoding InternalEncoding { get; set; } = Encoding.UTF8;
+    protected List<InfoUnit> InfoUnits { get; set; } = [];
+    private byte[] TicketContent { get; set; } = [];
 
-    public string mTicket = "";
-    protected byte[]? mSignature;
-    protected byte[]? rawTicket;
+    public string ToBase64 => SAPTools.Utils.Base64.Encode(TicketContent);
+    public byte[] ToBytes => TicketContent;
 
     public string Create() {
-        encoding = codepage switch {
-            "4110" => Encoding.UTF8,
-            "4103" => Encoding.Unicode,
-            _ => Encoding.ASCII,
-        };
+        InternalEncoding = SAPCodepageExtensions.GetEncoding(Codepage);
+        using MemoryStream payload = new(512);
+        payload.WriteByte(2); // Tickets always start with a (byte)0x02
+        payload.Write(Encoding.ASCII.GetBytes(SAPCodepageExtensions.ToCode(Codepage)));
 
-        using MemoryStream ticketStream = new(256);
-        ticketStream.WriteByte(2);
-        ticketStream.Write(Encoding.ASCII.GetBytes(codepage), 0, codepage.Length);
         EncodeInfoUnits();
-        foreach(InfoUnit iu in InfoUnits) {
-            iu.WriteTo(ticketStream);
-        }
+        foreach(InfoUnit iu in InfoUnits) iu.WriteTo(payload);
+        payload.Flush();
+        SignedCms signature = GetSignature(payload.ToArray());
+        InfoUnit iuSignature = new(InfoUnitID.Signature, signature);
 
-        mSignature = SignTicket(ticketStream.ToArray());
-        InfoUnit iuSignature = new(InfoUnit.ID_SIGNATURE, mSignature);
-        iuSignature.WriteTo(ticketStream);
+        iuSignature.WriteTo(payload);
+        payload.Flush();
+        TicketContent = payload.ToArray();
 
-        rawTicket = ticketStream.ToArray();
-        return SAPTools.Utils.Base64.Encode(rawTicket);
+        return SAPTools.Utils.Base64.Encode(TicketContent);
     }
 
-    protected byte[] SignTicket(byte[] data) {
+    private SignedCms GetSignature(byte[] data) {
         using X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);
-        var cert = store.Certificates.Find(X509FindType.FindBySubjectName, SysID, false)
-                   .OfType<X509Certificate2>()
-                   .FirstOrDefault(c => c.FriendlyName == SysID);
 
-        if(cert == null) return [];
+        X509Certificate2 cert = 
+            store.Certificates.Find(X509FindType.FindBySubjectName, SysID, false)
+            .OfType<X509Certificate2>()
+            .FirstOrDefault(c => c.FriendlyName == SysID)
+             ?? throw new InvalidOperationException($"Certificate for {SysID} not found.");
 
-        ContentInfo content = new (new Oid("1.2.840.113549.1.7.1"), data);
-        SignedCms signedCms = new (content, true);
-        CmsSigner signer = new (SubjectIdentifierType.IssuerAndSerialNumber, cert) {
+        ContentInfo content = new(new Oid("1.2.840.113549.1.7.1"), data);
+        SignedCms signedCms = new(content, true);
+        CmsSigner signer = new(SubjectIdentifierType.IssuerAndSerialNumber, cert) {
             DigestAlgorithm = new Oid("1.3.14.3.2.26"),
-            IncludeOption = IncludeCert ? X509IncludeOption.EndCertOnly: X509IncludeOption.None,
+            IncludeOption = IncludeCert ? X509IncludeOption.EndCertOnly : X509IncludeOption.None,
+            SignedAttributes = { new Pkcs9SigningTime(DateTime.UtcNow) }
         };
-
-        _= signer.SignedAttributes.Add(new Pkcs9SigningTime(DateTime.UtcNow));
         signedCms.ComputeSignature(signer);
 
-        return signedCms.Encode();
+        return signedCms;
     }
 
-    protected internal void EncodeInfoUnits() {
-        // Ensure minimum validity time for Assertion Tickets
-        if((ValidTime ?? 0) * 60 + ValidTimeMin == 0) ValidTimeMin = 2;
-
-        // Simplify adding InfoUnits with a local function
-        void AddInfoUnit(byte id, byte[] data) => InfoUnits.Add(new InfoUnit(id, data));
-
-        // Use local function to add InfoUnits
-        if(PortalUser != null)
-            AddInfoUnit(InfoUnit.ID_PORTAL_USER, encoding.GetBytes($"portal:{PortalUser}"));
-        AddInfoUnit(InfoUnit.ID_AUTHSCHEME, encoding.GetBytes("default"));
-        AddInfoUnit(InfoUnit.ID_USER, encoding.GetBytes(User));
-        AddInfoUnit(InfoUnit.ID_CREATE_CLIENT, encoding.GetBytes(SysClient));
-        AddInfoUnit(InfoUnit.ID_CREATE_NAME, encoding.GetBytes(SysID));
-        if(Language != null)
-            AddInfoUnit(InfoUnit.ID_LANGUAGE, encoding.GetBytes(Language));
-
-        // Assertion Tickets
-        if(RcptSysID != null && RcptSysClient != null) {
-            AddInfoUnit(InfoUnit.ID_RECIPIENT_CLIENT, Encoding.ASCII.GetBytes(RcptSysClient));
-            AddInfoUnit(InfoUnit.ID_RECIPIENT_SID, Encoding.ASCII.GetBytes(RcptSysID));
-            // Do not cache the ticket
-            AddInfoUnit(InfoUnit.ID_FLAGS, new byte[] { 1 });
-        }
-
-        AddInfoUnit(InfoUnit.ID_CREATE_TIME, encoding.GetBytes(DateTime.UtcNow.ToString("yyyyMMddHHmm")));
-        AddInfoUnit(InfoUnit.ID_VALID_TIME_MIN, InfoUnit.Int32ToBytes(ValidTimeMin));
-        if(ValidTime != null)
-            AddInfoUnit(InfoUnit.ID_VALID_TIME, InfoUnit.Int32ToBytes(ValidTime.Value));
-        AddInfoUnit(InfoUnit.ID_USER_UTF, Encoding.UTF8.GetBytes(User));
+    public virtual void EncodeInfoUnits() {
+        InfoUnits.Clear();
+        InfoUnits.Add(new(InfoUnitID.User, User, InternalEncoding));
+        InfoUnits.Add(new(InfoUnitID.CreateClient, SysClient, InternalEncoding));
+        InfoUnits.Add(new(InfoUnitID.CreateSID, SysID, InternalEncoding));
+        if(Language != SAPLanguage.None)
+            InfoUnits.Add(new(InfoUnitID.Language, Language, InternalEncoding));
+        InfoUnits.Add(new(InfoUnitID.CreateTime, DateTime.UtcNow));
+        InfoUnits.Add(new(InfoUnitID.ValidTimeInM, ValidTime % 60));
+        if(ValidTime < 60) InfoUnits.Add(new(InfoUnitID.ValidTimeInH, ValidTime / 60));
+        InfoUnits.Add(new(InfoUnitID.UTF8_User, User));
+        if(IsRFC) InfoUnits.Add(new(InfoUnitID.RFC, "X"));
     }
 }

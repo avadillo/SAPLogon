@@ -1,16 +1,29 @@
 ﻿using SAPTools.LogonTicket;
+using SAPTools.LogonTicket.Extensions;
+using System.Text;
 
-Ticket t = new() {
+AssertionTicket t1 = new() {
     User = "DEMOUSER",
     SysID = "SSO",
     SysClient = "000",
-    ValidTimeMin = 2,
     RcptSysID = "NWA",
     RcptSysClient = "752",
-    IncludeCert = false
+    Language = SAPLanguage.EN  //Optional
 };
 
-Console.WriteLine("Ticket:");
-Console.WriteLine($"MYSAPSSO2={t.Create()}");
+LogonTicket t2 = new() {
+    User = "DEMOUSER",
+    SysID = "SSO",
+    SysClient = "000",
+    PortalUser = "support@saptools.mx",
+    Language = SAPLanguage.EN  //Optional
+};
+
+Console.WriteLine("Assertion Ticket:");
+Console.WriteLine($"MYSAPSSO2={t1.Create()}");
+
+Console.WriteLine("Logon Ticket:");
+Console.WriteLine($"MYSAPSSO2={t2.Create()}");
+
 Console.WriteLine();
 Console.WriteLine("Verify the result at https://saptools.mx/mysapsso2");
