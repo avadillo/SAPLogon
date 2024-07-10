@@ -3,10 +3,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <StartupObject>SAPLogon.Web.Program</StartupObject>
+    <StartupObject></StartupObject>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <AssemblyName>$(MSBuildProjectName)</AssemblyName>
-    <PublishAot>False</PublishAot>
+    <AssemblyName>SAPLogon</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />

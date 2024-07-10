@@ -1,7 +1,34 @@
 ﻿@page
-@model SAPLogon.Pages.WebguiModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model WebGuiModel
+
 @{
-    <div>
-        @Html.DisplayFor(m => m.Message)
-    </div>
+    ViewData["Title"] = "WebGUI";
 }
+
+<h3>WebGUI Demo</h3>
+<br />
+<div class="text-center">
+    <form method="post">
+        <table>
+            <tr>
+                <td>Cert ID: </td>
+                <td>
+                    <select asp-for="SysID" asp-items="Model.Certificates" class="form-control">
+                        <option value="">-- Select Certificate --</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>User ID: </td>
+                <td><input type="text" id="UserID" name="UserID" value="DEMOUSER" readonly /></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><button type="submit" asp-page-handler="Submit" class="btn btn-primary">Submit</button></td>
+            </tr>
+        </table>
+        <hr />
+    </form>
+    @Model.TxtStatus
+</div>

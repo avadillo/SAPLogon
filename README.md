@@ -20,8 +20,6 @@ e.g.:
 ```
 
 ### Demo System
-Test the application here: [Demo System](https://saplogon.saptools.mx/)
+Test the application here: [Demo System](https://sapnwa.saptools.mx/)
 
 Paste the generated MYSAPSSO2 cookie to [SAP Logon Ticket Decoder](https://saptools.mx/mysapsso2) to analyze it.
-
-

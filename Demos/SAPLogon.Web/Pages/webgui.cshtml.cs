@@ -1,24 +1,39 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
+using SAPTools.LogonTicket.Extensions;
 
-namespace SAPLogon.Pages;
+namespace SAPLogon.Web.Pages;
 
-public class WebguiModel : PageModel {
-    private readonly string[] _forbiddenUsers = { "DDIC", "SAP*" };
-    public string Message { get; set; } = "";
+public class WebGuiModel : PageModel {
+    [BindProperty]
+    public string? SysID { get; set; }
+    public string TxtStatus { get; set; } = "";
+    public List<SelectListItem>? Certificates { get; private set; }
 
-    public void OnGet(string? user, string tx) {
+    public WebGuiModel() => InitializeCertificates();
+
+    private void InitializeCertificates() => Certificates = [
+        new SelectListItem { Text = "SSO (DSA 1024)", Value = "SSO" },
+        new SelectListItem { Text = "SSO-RSA (RSA 2048)", Value = "SSO-RSA" }
+    ];
+
+    public void OnPostSubmit() {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
-        user = user?.ToUpper() ?? "DEMOUSER";
 
-        if (_forbiddenUsers.Any(fu => user.Equals(fu, StringComparison.OrdinalIgnoreCase))) {
-            Message = "User not allowed";
+        if (String.IsNullOrWhiteSpace(SysID) || !SysID.StartsWith("SSO")) {
+            TxtStatus = "Please select a valid certificate";
             return;
         }
 
-        LogonTicket t = new() {
-            SysID = "SSO-RSA", SysClient = "000",
-            User = user, PortalUser = "support@saptools.mx" };
+        LogonTicket ticket = new() {
+            SysID = SysID.ToUpper(),
+            SysClient = "000",
+            User = "DEMOUSER",
+            ValidTime = 10,
+            Language = SAPLanguage.EN
+        };
 
         CookieOptions cookieOptions = new() {
             Path = "/",
@@ -30,11 +45,10 @@ public class WebguiModel : PageModel {
         // Delete the cookies before setting a new one:
         DeleteCookie("MYSAPSSO2");
         DeleteCookie("SAP_SESSIONID_NWA_752");
-        Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
+        Response.Cookies.Append("MYSAPSSO2", ticket.Create(), cookieOptions);
 
-        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
-        if(!String.IsNullOrEmpty(tx)) url += $"?~transaction={tx}";
-
+        // Once the cookie is set, redirect to the SAP system:
+        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
         Response.Redirect(url);
     }
 
@@ -47,3 +61,4 @@ public class WebguiModel : PageModel {
         return values.Length >= 2 ? $"{values[^2]}.{values[^1]}" : "saptools.mx";
     }
 }
+

@@ -7,7 +7,7 @@ using System.Net;
 using System.Text;
 using System.Xml.Linq;
 
-namespace SAPLogon.Pages;
+namespace SAPLogon.Web.Pages;
 
 public class WSModel : PageModel {
     [BindProperty]
@@ -60,7 +60,7 @@ public class WSModel : PageModel {
             using(HttpContent content = new StringContent(soapString, Encoding.UTF8, "text/xml")) {
                 _ = sb.AppendLine($"Calling {uri}")
                   .AppendLine("\nRequest Headers:")
-                  .AppendLine(client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}"))
+                  .AppendLine(String.Join("\n", client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
                   .AppendLine("\nRequest Body:")
                   .AppendLine(soapString);
 
@@ -76,7 +76,7 @@ public class WSModel : PageModel {
 
                 // Append the response headers and body to the StringBuilder
                 _ = sb.AppendLine("\nResponse Headers:")
-                      .AppendLine(response.Headers.Select(header => $"{header.Key}: {string.Join(" ", header.Value)}"))
+                      .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {string.Join(" ", header.Value)}")))
                       .AppendLine("\nResponse Body:")
                       .AppendLine(responseXML);
 

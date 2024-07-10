@@ -1,22 +1,22 @@
-namespace SAPLogon;
+namespace SAPLogon.Web;
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        _ = builder.Services.AddRazorPages();
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddRazorPages();
 
         WebApplication app = builder.Build();
         if (!app.Environment.IsDevelopment()) {
-            _ = app.UseExceptionHandler("/Error");
-            _ = app.UseHsts();
+            app.UseExceptionHandler("/Error");
+            app.UseHsts();
         }
-        _ = app.UseCookiePolicy();
-        _ = app.UseStaticFiles();
-        _ = app.UseRouting();
-        _ = app.UseAuthorization();
-        _ = app.MapRazorPages();
+        app.UseCookiePolicy();
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseAuthorization();
+        app.MapRazorPages();
         app.Run();
     }
 }
