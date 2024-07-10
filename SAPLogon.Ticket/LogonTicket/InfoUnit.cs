@@ -23,8 +23,8 @@ public class InfoUnit {
     public InfoUnit(InfoUnitID id, SAPLanguage data, Encoding enc) =>
         (ID, Content) = (id, enc.GetBytes(SAPLanguageExtensions.ToCode(data)));
 
-    public InfoUnit(InfoUnitID id, DateTime data) =>
-        (ID, Content) = (id, Encoding.ASCII.GetBytes(data.ToString(DateFormat)));
+    public InfoUnit(InfoUnitID id, DateTime data, Encoding enc) =>
+        (ID, Content) = (id, enc.GetBytes(data.ToString(DateFormat)));
 
     public InfoUnit(InfoUnitID id, SignedCms data) =>
         (ID, Content) = (id, data.Encode());

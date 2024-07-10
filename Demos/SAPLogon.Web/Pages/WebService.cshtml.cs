@@ -36,6 +36,7 @@ public class WSModel : PageModel {
             Language = SAPLanguage.EN,
             RcptSysID = "NWA",
             RcptSysClient = "752"
+ 
         };
 
         // Call the SAP Web Service and wait for the response
@@ -73,7 +74,7 @@ public class WSModel : PageModel {
 
                 // Append the response headers and body to the StringBuilder
                 _ = sb.AppendLine("\nResponse Headers:")
-                      .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {string.Join(" ", header.Value)}")))
+                      .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
                       .AppendLine("\nResponse Body:")
                       .AppendLine(responseXML);
 

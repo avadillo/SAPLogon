@@ -16,7 +16,7 @@ public abstract class Ticket {
     public bool IncludeCert { get; set; } = false;
     public bool IsRFC { get; set; } = false;
 
-    private readonly SAPCodepage Codepage = SAPCodepage.UTF8;
+    private readonly SAPCodepage Codepage = SAPCodepage.UnicodeLittleUnmarked;
     private Encoding InternalEncoding { get; set; } = Encoding.UTF8;
     protected List<InfoUnit> InfoUnits { get; set; } = [];
     private byte[] TicketContent { get; set; } = [];
@@ -70,12 +70,15 @@ public abstract class Ticket {
 
     public virtual void EncodeInfoUnits() {
         InfoUnits.Clear();
+        // The following InfoUnits need an encoding depending on the codepage
         InfoUnits.Add(new(InfoUnitID.User, User, InternalEncoding));
         InfoUnits.Add(new(InfoUnitID.CreateClient, SysClient, InternalEncoding));
         InfoUnits.Add(new(InfoUnitID.CreateSID, SysID, InternalEncoding));
+        InfoUnits.Add(new(InfoUnitID.CreateTime, DateTime.UtcNow, InternalEncoding));
         if(Language != SAPLanguage.None)
             InfoUnits.Add(new(InfoUnitID.Language, Language, InternalEncoding));
-        InfoUnits.Add(new(InfoUnitID.CreateTime, DateTime.UtcNow));
+
+        // The following InfoUnits do not need an encoding
         InfoUnits.Add(new(InfoUnitID.ValidTimeInM, ValidTime % 60));
         if(ValidTime < 60) InfoUnits.Add(new(InfoUnitID.ValidTimeInH, ValidTime / 60));
         InfoUnits.Add(new(InfoUnitID.UTF8_User, User));
