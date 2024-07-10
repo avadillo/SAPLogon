@@ -22,7 +22,7 @@ public class WebGuiModel : PageModel {
     public void OnPostSubmit() {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
 
-        if (String.IsNullOrWhiteSpace(SysID) || !SysID.StartsWith("SSO")) {
+        if (String.IsNullOrWhiteSpace(SysID)) {
             TxtStatus = "Please select a valid certificate";
             return;
         }

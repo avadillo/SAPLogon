@@ -24,13 +24,19 @@ public class WSModel : PageModel {
     ];
 
     public async Task<IActionResult> OnPostSubmit() {
-        if (String.IsNullOrEmpty(SysID) || !SysID.StartsWith("SSO")) {
+        if (String.IsNullOrEmpty(SysID)) {
             TxtStatus = "Please select a valid certificate";
             return Page();
         }
 
-        // Simplify ticket creation with a method call if applicable
-        Ticket ticket = CreateTicket(SysID.ToUpper(), "000", "DEMOUSER", SAPLanguage.DE, "NWA", "752");
+        AssertionTicket ticket = new() {
+            SysID = SysID.ToUpper(),
+            SysClient = "000",
+            User = "DEMOUSER",
+            Language = SAPLanguage.EN,
+            RcptSysID = "NWA",
+            RcptSysClient = "752"
+        };
 
         // Call the SAP Web Service and wait for the response
         Uri uri = new(@"https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/cat_ping/752/zcatping/test");
@@ -38,15 +44,6 @@ public class WSModel : PageModel {
 
         return Page();
     }
-
-    private static AssertionTicket CreateTicket(string sysID, string sysClient, string user, SAPLanguage language, string rcptSysID, string rcptSysClient) => new() {
-        SysID = sysID,
-        SysClient = sysClient,
-        User = user,
-        Language = language,
-        RcptSysID = rcptSysID,
-        RcptSysClient = rcptSysClient
-    };
 
     public async Task<string> GetInfoAsync(Uri uri, string mysapsso2) {
         // Create the SOAP envelope using the CAT_PING action

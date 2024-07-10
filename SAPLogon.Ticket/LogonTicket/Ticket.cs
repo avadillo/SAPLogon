@@ -53,13 +53,16 @@ public abstract class Ticket {
             .FirstOrDefault(c => c.FriendlyName == SysID)
              ?? throw new InvalidOperationException($"Certificate for {SysID} not found.");
 
-        ContentInfo content = new(new Oid("1.2.840.113549.1.7.1"), data);
+        ContentInfo content = new(new Oid("1.2.840.113549.1.7.1"), data); // PKCS7
         SignedCms signedCms = new(content, true);
         CmsSigner signer = new(SubjectIdentifierType.IssuerAndSerialNumber, cert) {
-            DigestAlgorithm = new Oid("1.3.14.3.2.26"),
             IncludeOption = IncludeCert ? X509IncludeOption.EndCertOnly : X509IncludeOption.None,
             SignedAttributes = { new Pkcs9SigningTime(DateTime.UtcNow) }
         };
+
+        if(cert.PublicKey.Oid.Value == "1.2.840.10040.4.1") // DSA
+            signer.DigestAlgorithm = new Oid("1.3.14.3.2.26"); // SHA1
+
         signedCms.ComputeSignature(signer);
 
         return signedCms;

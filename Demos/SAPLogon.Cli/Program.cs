@@ -13,7 +13,7 @@ AssertionTicket t1 = new() {
 
 LogonTicket t2 = new() {
     User = "DEMOUSER",
-    SysID = "SSO",
+    SysID = "ECDSA",
     SysClient = "000",
     PortalUser = "support@saptools.mx",
     Language = SAPLanguage.EN  //Optional
