@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SAPTools.LogonTicket;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SAPLogon.Web.Pages;
 
@@ -7,22 +8,23 @@ public class RedirectModel : PageModel {
     private readonly string[] _forbiddenUsers = { "DDIC", "SAP*" };
     public string Message { get; set; } = "";
 
-    public void OnGet(string? user, string tx) {
+    public async Task OnGet(string? user, string tx) {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
         user = user?.ToUpper() ?? "DEMOUSER";
 
-        if (_forbiddenUsers.Any(fu => user.Equals(fu, StringComparison.OrdinalIgnoreCase))) {
+        if(_forbiddenUsers.Any(fu => user.Equals(fu, StringComparison.OrdinalIgnoreCase))) {
             Message = "User not allowed";
             return;
         }
 
-        string thumb = UserCertificates.GetThumbprintBySubject("OU=SAP Tools, CN=SAP SSO RSA 2048");
-        var (sysId, sysClient) = UserCertificates.GetTypeAndPosition(thumb);
+        X509Certificate2 cert = await UserCertificates.GetCertificateBySubject("OU=SAP Tools, CN=SAP SSO RSA 2048");
+        var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(cert.Thumbprint);
+
         LogonTicket t = new() {
             SysID = sysId,
             SysClient = sysClient,
-            User = user, PortalUser = "support@saptools.mx" ,
-            CertificateThumbprint = thumb
+            User = user, PortalUser = "support@saptools.mx",
+            Certificate = cert
         };
 
         CookieOptions cookieOptions = new() {
@@ -35,6 +37,7 @@ public class RedirectModel : PageModel {
         // Delete the cookies before setting a new one:
         DeleteCookie("MYSAPSSO2");
         DeleteCookie("SAP_SESSIONID_NWA_752");
+
         Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
 
         string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
@@ -42,6 +45,7 @@ public class RedirectModel : PageModel {
 
         Response.Redirect(url);
     }
+
 
     private void DeleteCookie(string cookieName) {
         try { Response.Cookies.Delete(cookieName); } catch { /* Log or handle the error if necessary */ }

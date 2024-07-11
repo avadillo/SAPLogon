@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Reflection;
+﻿using System.ComponentModel;
 
 namespace SAPTools.LogonTicket.Extensions;
 
@@ -52,8 +50,7 @@ public enum SAPLanguage {
     [Description("No description")] None = 0
 }
 
-public static class SAPLanguageExtensions
-{
+public static class SAPLanguageExtensions {
     private static readonly Dictionary<string, SAPLanguage> langCodeToEnumMap;
 
     static SAPLanguageExtensions() {
@@ -65,14 +62,13 @@ public static class SAPLanguageExtensions
         }
     }
 
-    public static string GetDescription(this SAPLanguage lang)
-    {
+    public static string GetDescription(this SAPLanguage lang) {
         var type = lang.GetType();
         var memInfo = type.GetMember(lang.ToString());
 
-        if (memInfo.Length > 0) {
+        if(memInfo.Length > 0) {
             object[] attrs = memInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
-            if (attrs.Length > 0)
+            if(attrs.Length > 0)
                 return ((DescriptionAttribute)attrs[0]).Description;
         }
         return "No description";
@@ -82,7 +78,7 @@ public static class SAPLanguageExtensions
         lang = lang.Replace("\0", String.Empty);
         if(String.IsNullOrEmpty(lang)) return SAPLanguage.None;
 
-        if(langCodeToEnumMap.TryGetValue(lang, out var language)) 
+        if(langCodeToEnumMap.TryGetValue(lang, out var language))
             return language;
 
         // Handle special cases or log unknown language
@@ -90,8 +86,8 @@ public static class SAPLanguageExtensions
     }
 
     public static SAPLanguage FromDescription(string description) {
-        foreach (SAPLanguage language in Enum.GetValues(typeof(SAPLanguage))) {
-            if (description.Equals(language.GetDescription(), StringComparison.OrdinalIgnoreCase))
+        foreach(SAPLanguage language in Enum.GetValues(typeof(SAPLanguage))) {
+            if(description.Equals(language.GetDescription(), StringComparison.OrdinalIgnoreCase))
                 return language;
         }
 

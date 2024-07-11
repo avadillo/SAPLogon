@@ -19,6 +19,14 @@
                 </td>
             </tr>
             <tr>
+                <td>User ID: </td>
+                <td>
+                    <select asp-for="UserName" asp-items="Model.UserList" class="form-control">
+                        <option value="">-- Select a user name --</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <td></td>
                 <td><button type="submit" asp-page-handler="Submit" class="btn btn-primary">Submit</button></td>
             </tr>

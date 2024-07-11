@@ -1,10 +1,5 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SAPTools.LogonTicket.Extensions;
 
@@ -45,7 +40,7 @@ public enum InfoUnitType : byte {
 
 [Flags]
 public enum InfoUnitFlags : byte {
-    [Description("No Flags ")]  None = 0x00,
+    [Description("No Flags ")] None = 0x00,
     [Description("Do not store in Ticket Cache ")] DoNotCacheTicket = 0x01
 }
 
@@ -84,7 +79,6 @@ public static class InfoUnitExtensions {
     public static InfoUnitID FromString(string value) =>
         Enum.TryParse(value, out InfoUnitID result) ? result
             : throw new ArgumentOutOfRangeException(nameof(value), $"Value {value} is not defined in InfoUnitID enum.");
-
 
     public static Encoding DetermineEncoding(InfoUnitID id, Encoding enc) =>
         id.GetInfoUnitType() switch {

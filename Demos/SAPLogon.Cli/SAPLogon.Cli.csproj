@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SAPLogon.Ticket\SAPLogon.Ticket.csproj" />
+    <ProjectReference Include="..\SAPLogon.Web\SAPLogon.Web.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,38 +1,17 @@
-﻿using SAPTools.LogonTicket;
-using SAPTools.LogonTicket.Extensions;
-using System.Security.Cryptography.X509Certificates;
+﻿using SAPLogon.Web.Common;
+using SAPTools.LogonTicket;
 
-UserCertificates.PrintCertificates();
-Console.WriteLine(UserCertificates.GetWebsiteLoadCertificates());
-
-string thumb = UserCertificates.GetThumbprintBySubject("OU=SAP Tools, CN=SAP SSO RSA 4096");
-var (sysId, sysClient) = UserCertificates.GetTypeAndPosition(thumb);
-AssertionTicket t1 = new() {
-    User = "DEMOUSER",
-    SysID = sysId,
-    SysClient = sysClient,
-    RcptSysID = "NWA",
-    RcptSysClient = "752",
-    Language = SAPLanguage.EN,  //Optional
-    CertificateThumbprint = thumb
-};
-
-thumb = UserCertificates.GetThumbprintBySubject("OU=SAP Tools, CN=SAP SSO RSA 2048");
-(sysId, sysClient) = UserCertificates.GetTypeAndPosition(thumb);
-LogonTicket t2 = new() {
-    User = "DEMOUSER",
-    SysID = sysId,
-    SysClient = sysClient,
-    PortalUser = "support@saptools.mx",
-    Language = SAPLanguage.EN,  //Optional
-    CertificateThumbprint = UserCertificates.GetThumbprintBySubject("OU=SAP Tools, CN=SAP SSO RSA 4096") ?? throw new Exception("Certificate not found")
-};
-
-Console.WriteLine("Assertion Ticket:");
-Console.WriteLine($"MYSAPSSO2={t1.Create()}");
-
-Console.WriteLine("Logon Ticket:");
-Console.WriteLine($"MYSAPSSO2={t2.Create()}");
-
+string subject = "OU=SAP Tools, CN=SAP SSO RSA 4096";
+Console.WriteLine($@"Getting certificate by subject  ""{subject}""");
+var cert = UserCertificates.GetCertificateBySubject(subject).Result;
+if(cert == null) {
+    Console.WriteLine("Certificate not found");
+    return;
+}
+Console.WriteLine($"Certificate Thumpbrint: {cert.Thumbprint}");
 Console.WriteLine();
-Console.WriteLine("Verify the result at https://saptools.mx/mysapsso2");
+Console.WriteLine("Getting the list of valid users for the WebGUI Demo:");
+
+int i = 0;
+foreach(var a in WebServices.WebGUIUsers.Result)
+    Console.WriteLine($"{++i:D2}: {a.NameText} ({a.Bname})");

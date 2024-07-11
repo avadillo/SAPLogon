@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Text;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace SAPTools.LogonTicket.Extensions;
 
@@ -62,9 +56,9 @@ public static class SAPCodepageExtensions {
         var type = encoding.GetType();
         var memberInfo = type.GetMember(encoding.ToString());
 
-        if (memberInfo.Length > 0) {
-           object[] attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
-            if (attributes.Length > 0)
+        if(memberInfo.Length > 0) {
+            object[] attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+            if(attributes.Length > 0)
                 return ((DescriptionAttribute)attributes[0]).Description;
         }
         return encoding.ToString();

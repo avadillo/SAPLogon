@@ -1,11 +1,12 @@
-﻿using System.Security.Cryptography.Pkcs;
+﻿using SAPTools.LogonTicket.Extensions;
+using System.Security.Cryptography.Pkcs;
 using System.Text;
-using SAPTools.LogonTicket.Extensions;
 using static SAPTools.LogonTicket.Extensions.InfoUnitExtensions;
 
 namespace SAPTools.LogonTicket;
+
 public class InfoUnit {
-    public InfoUnitID ID { get; set; } 
+    public InfoUnitID ID { get; set; }
     public byte[] Content { get; set; }
 
     public InfoUnit(InfoUnitID id, byte[] data) =>
@@ -14,7 +15,7 @@ public class InfoUnit {
     public InfoUnit(InfoUnitID id, byte data) =>
         (ID, Content) = (id, [data]);
 
-    public InfoUnit(InfoUnitID id, string data) => 
+    public InfoUnit(InfoUnitID id, string data) =>
         (ID, Content) = (id, DetermineEncoding(id).GetBytes(data));
 
     public InfoUnit(InfoUnitID id, string data, Encoding enc) =>
@@ -36,7 +37,7 @@ public class InfoUnit {
 
     public virtual void WriteTo(Stream @out) {
         // Ensure the content length does not exceed ushort.MaxValue - 3
-        if (Content!.Length > UInt16.MaxValue - 3) throw new InvalidOperationException("Content is too large.");
+        if(Content!.Length > UInt16.MaxValue - 3) throw new InvalidOperationException("Content is too large.");
 
         ushort totalLength = (ushort)(3 + Content.Length); // Total length calculation
         byte[] buffer = new byte[totalLength];

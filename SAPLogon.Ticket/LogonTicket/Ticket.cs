@@ -1,9 +1,8 @@
-﻿using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
+﻿using SAPTools.LogonTicket.Extensions;
+using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using SAPTools.LogonTicket.Extensions;
-using System.ComponentModel;
 
 namespace SAPTools.LogonTicket;
 
@@ -12,7 +11,7 @@ public abstract class Ticket {
     public required string SysID { get; set; }
     public required string SysClient { get; set; }
     public virtual uint ValidTime { get; set; } = 0;
-    public required string CertificateThumbprint { get; set; }
+    public required X509Certificate2 Certificate { get; set; }
 
     public SAPLanguage Language { get; set; } = SAPLanguage.None;
     public bool IncludeCert { get; set; } = false;
@@ -33,9 +32,9 @@ public abstract class Ticket {
         payload.Write(Encoding.ASCII.GetBytes(SAPCodepageExtensions.ToCode(Codepage)));
 
         EncodeInfoUnits();
-        foreach(InfoUnit iu in InfoUnits) iu.WriteTo(payload);
+        foreach(var iu in InfoUnits) iu.WriteTo(payload);
 
-        SignedCms signature = GetSignature(payload.ToArray());
+        var signature = GetSignature(payload.ToArray());
         InfoUnit iuSignature = new(InfoUnitID.Signature, signature);
         iuSignature.WriteTo(payload);
         TicketContent = payload.ToArray();
@@ -49,14 +48,12 @@ public abstract class Ticket {
 
         ContentInfo content = new(new Oid("1.2.840.113549.1.7.1"), data); // PKCS7
         SignedCms signedCms = new(content, true);
-        X509Certificate2 cert = UserCertificates.GetCertificate(CertificateThumbprint) ?? throw new Exception("Certificate not found");
-
-        CmsSigner signer = new(SubjectIdentifierType.IssuerAndSerialNumber, cert) {
+        CmsSigner signer = new(SubjectIdentifierType.IssuerAndSerialNumber, Certificate) {
             IncludeOption = IncludeCert ? X509IncludeOption.EndCertOnly : X509IncludeOption.None,
             SignedAttributes = { new Pkcs9SigningTime(DateTime.UtcNow) }
         };
 
-        if(cert.PublicKey.Oid.Value == "1.2.840.10040.4.1") // DSA
+        if(Certificate.PublicKey.Oid.Value == "1.2.840.10040.4.1") // DSA
             signer.DigestAlgorithm = new Oid("1.3.14.3.2.26"); // SHA1
         signedCms.ComputeSignature(signer);
 

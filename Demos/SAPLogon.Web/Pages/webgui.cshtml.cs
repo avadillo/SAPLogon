@@ -1,39 +1,67 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SAPLogon.Web.Common;
 using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
-using System.Security.Cryptography.X509Certificates;
 
 namespace SAPLogon.Web.Pages;
 
 public class WebGuiModel : PageModel {
     [BindProperty]
     public string? Cert { get; set; }
+    [BindProperty]
+    public string? UserName { get; set; }
     public string TxtStatus { get; set; } = "";
     public List<SelectListItem>? CertList { get; private set; } = [];
+    public List<SelectListItem>? UserList { get; private set; } = [];
 
-    public WebGuiModel() => InitializeCertificates();
+    public WebGuiModel() => InitializeLists().Wait();
 
-    private void InitializeCertificates() =>
-        CertList?.AddRange(UserCertificates.Certificates.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }));
+    public async Task InitializeLists() {
+        // Start both asynchronous operations
+        Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
+            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }).ToList());
 
-    public void OnPostSubmit() {
+        Task<List<SelectListItem>> usersTask = WebServices.WebGUIUsers
+            .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.NameText, Value = user.Bname }).ToList());
+
+        // Wait for both operations to complete
+        await Task.WhenAll(certificatesTask, usersTask);
+
+        // Retrieve the results
+        CertList = await certificatesTask;
+        UserList = await usersTask;
+    }
+
+    public async Task<IActionResult> OnPostSubmit() {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
 
-        if (String.IsNullOrWhiteSpace(Cert)) {
+        if(String.IsNullOrWhiteSpace(Cert)) {
             TxtStatus = "Please select a valid certificate";
-            return;
+            return Page();
         }
 
-        var (sysId, sysClient) = UserCertificates.GetTypeAndPosition(Cert);
+        if(String.IsNullOrWhiteSpace(UserName)) {
+            TxtStatus = "Please select a valid user";
+            return Page();
+        }
+
+        // Start both tasks without awaiting them immediately to potentially run them in parallel
+        var typeAndPositionTask = UserCertificates.GetTypeAndPosition(Cert);
+        var certificateTask = UserCertificates.GetCertificate(Cert);
+
+        // Now await the tasks
+        var (sysId, sysClient) = await typeAndPositionTask;
+        var certificate = await certificateTask;
+
         LogonTicket ticket = new() {
             SysID = sysId,
             SysClient = sysClient,
-            User = "DEMOUSER",
+            User = UserName,
             ValidTime = 10,
             Language = SAPLanguage.EN,
-            CertificateThumbprint = Cert
+            Certificate = certificate
         };
 
         CookieOptions cookieOptions = new() {
@@ -49,8 +77,10 @@ public class WebGuiModel : PageModel {
         Response.Cookies.Append("MYSAPSSO2", ticket.Create(), cookieOptions);
 
         // Once the cookie is set, redirect to the SAP system:
-        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui?~transaction=STRUSTSSO2";
+        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
         Response.Redirect(url);
+
+        return Page();
     }
 
     private void DeleteCookie(string cookieName) {

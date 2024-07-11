@@ -21,7 +21,11 @@
             </tr>
             <tr>
                 <td>User ID: </td>
-                <td><input type="text" id="UserID" name="UserID" value="DEMOUSER" readonly /></td>
+                <td>
+                    <select asp-for="UserName" asp-items="Model.UserList" class="form-control">
+                        <option value="">-- Select a user name --</option>
+                    </select>
+                </td>
             </tr>
             <tr>
                 <td></td>
