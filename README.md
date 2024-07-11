@@ -21,7 +21,7 @@ The application supports three types of certificate algorithms: DSA, RSA, and EC
  | SAP SSO ECDSA P-384 | ECDSA     | P-384    |
  | SAP SSO ECDSA P-521 | ECDSA     | P-521    |
 
-> **Note:** Please verify that your chosen algorithm is supported by your SAP System: [How can I verify this?](https://github.com/avadillo/SAPLogon/blob/master/README.md#how-can-i-verify-if-a-specific-certificate-algorithm-is-supported-by-my-sap-netweaver-version)
+> **Note:** Please verify that your chosen algorithm is supported by your SAP System: [How can I verify this?](README.md#how-can-i-verify-if-a-specific-certificate-algorithm-is-supported-by-my-sap-netweaver-version)
 
 ## Certificate Generation
 Certificates can be generated using `OpenSSL` or `sapgenpse`. Below is an example of generating a certificate with `sapgenpse`:
@@ -79,7 +79,7 @@ Remember, the support for specific cryptographic algorithms can depend not only 
 
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
 ## Acknowledgments
 - [SAP Logon Ticket Decoder](https://saptools.mx/mysapsso2)
