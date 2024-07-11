@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
@@ -11,32 +12,32 @@ namespace SAPLogon.Web.Pages;
 
 public class WSModel : PageModel {
     [BindProperty]
-    public string? SysID { get; set; }
+    public string? Cert { get; set; }
     [BindProperty]
     public string TxtStatus { get; set; } = "";
-    public List<SelectListItem>? Certificates { get; private set; }
+    public List<SelectListItem>? CertList { get; private set; } = [];
 
     public WSModel() => InitializeCertificates();
 
-    private void InitializeCertificates() => Certificates = [
-        new SelectListItem { Text = "SSO (DSA 1024)", Value = "SSO" },
-        new SelectListItem { Text = "SSO-RSA (RSA 2048)", Value = "SSO-RSA" }
-    ];
+    private void InitializeCertificates() => 
+        CertList?.AddRange(UserCertificates.Certificates.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }));
+    
 
     public async Task<IActionResult> OnPostSubmit() {
-        if (String.IsNullOrEmpty(SysID)) {
+        if (String.IsNullOrEmpty(Cert)) {
             TxtStatus = "Please select a valid certificate";
             return Page();
         }
 
+        var (sysId, sysClient) = UserCertificates.GetTypeAndPosition(Cert);
         AssertionTicket ticket = new() {
-            SysID = SysID.ToUpper(),
-            SysClient = "000",
+            SysID = sysId,
+            SysClient = sysClient,
             User = "DEMOUSER",
             Language = SAPLanguage.EN,
             RcptSysID = "NWA",
-            RcptSysClient = "752"
- 
+            RcptSysClient = "752",
+            CertificateThumbprint = Cert
         };
 
         // Call the SAP Web Service and wait for the response

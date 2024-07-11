@@ -16,9 +16,14 @@ public class RedirectModel : PageModel {
             return;
         }
 
+        string thumb = UserCertificates.GetThumbprintBySubject("OU=SAP Tools, CN=SAP SSO RSA 2048");
+        var (sysId, sysClient) = UserCertificates.GetTypeAndPosition(thumb);
         LogonTicket t = new() {
-            SysID = "SSO-RSA", SysClient = "000",
-            User = user, PortalUser = "support@saptools.mx" };
+            SysID = sysId,
+            SysClient = sysClient,
+            User = user, PortalUser = "support@saptools.mx" ,
+            CertificateThumbprint = thumb
+        };
 
         CookieOptions cookieOptions = new() {
             Path = "/",

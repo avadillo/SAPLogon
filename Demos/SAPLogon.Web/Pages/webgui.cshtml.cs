@@ -3,36 +3,37 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SAPLogon.Web.Pages;
 
 public class WebGuiModel : PageModel {
     [BindProperty]
-    public string? SysID { get; set; }
+    public string? Cert { get; set; }
     public string TxtStatus { get; set; } = "";
-    public List<SelectListItem>? Certificates { get; private set; }
+    public List<SelectListItem>? CertList { get; private set; } = [];
 
     public WebGuiModel() => InitializeCertificates();
 
-    private void InitializeCertificates() => Certificates = [
-        new SelectListItem { Text = "SSO (DSA 1024)", Value = "SSO" },
-        new SelectListItem { Text = "SSO-RSA (RSA 2048)", Value = "SSO-RSA" }
-    ];
+    private void InitializeCertificates() =>
+        CertList?.AddRange(UserCertificates.Certificates.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }));
 
     public void OnPostSubmit() {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
 
-        if (String.IsNullOrWhiteSpace(SysID)) {
+        if (String.IsNullOrWhiteSpace(Cert)) {
             TxtStatus = "Please select a valid certificate";
             return;
         }
 
+        var (sysId, sysClient) = UserCertificates.GetTypeAndPosition(Cert);
         LogonTicket ticket = new() {
-            SysID = SysID.ToUpper(),
-            SysClient = "000",
+            SysID = sysId,
+            SysClient = sysClient,
             User = "DEMOUSER",
             ValidTime = 10,
-            Language = SAPLanguage.EN
+            Language = SAPLanguage.EN,
+            CertificateThumbprint = Cert
         };
 
         CookieOptions cookieOptions = new() {
