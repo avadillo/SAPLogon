@@ -4,8 +4,36 @@
 @{
     ViewData["Title"] = "SAP SSO Demos";
 }
-<h3>@ViewData["Title"]</h3>
-Using Logon and Assertion Tickets
-<br />
 
-The source code can be found on: https://github.com/avadillo/SAPLogon
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/site.css">
+</head>
+<body>
+    <main>
+        <section>
+            <h2>Welcome to SAP Logon Demos</h2>
+            <p>This site demonstrates the implementation of Single Sign-On (SSO) for SAP applications using Logon and Assertion Tickets. Explore the demos to see how SSO can be seamlessly integrated into SAP environments.</p>
+        </section>
+        <section>
+            <h3>Available Demos</h3>
+            <ul>
+                <li><a href="/WebGUI">Web GUI Demo</a> - Shows how to use SSO with SAP Web GUI.</li>
+                <li><a href="/WebService">Web Service Demo</a> - Demonstrates SSO with SAP Web Services.</li>
+            </ul>
+        </section>
+        <section>
+            <h3>Source Code</h3>
+            <p>The source code for these demos can be found on GitHub:
+            <a href="https://github.com/avadillo/SAPLogon">https://github.com/avadillo/SAPLogon</a> </p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; @(DateTime.Now.Year) SAP Tools. All rights reserved.</p>
+    </footer>
+</body>
+</html>
