@@ -5,34 +5,45 @@
 @{
     ViewData["Title"] = "WebService Demo";
 }
-<h3>WebService Demo</h3>
-<br />
-<div class="text-center">
-    <form method="post">
-        <table>
-            <tr>
-                <td>Cert ID: </td>
-                <td>
+<div class="container mt-5">
+    <h3 class="text-center">@ViewData["Title"]</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="post">
+                <div class="form-group">
+                    <label for="Cert">Cert ID:</label>
                     <select asp-for="Cert" asp-items="Model.CertList" class="form-control">
                         <option value="">-- Select a certificate --</option>
                     </select>
-                </td>
-            </tr>
-            <tr>
-                <td>User ID: </td>
-                <td>
+                </div>
+                <div class="form-group">
+                    <label for="UserName">User ID:</label>
                     <select asp-for="UserName" asp-items="Model.UserList" class="form-control">
                         <option value="">-- Select a user name --</option>
                     </select>
-                </td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><button type="submit" asp-page-handler="Submit" class="btn btn-primary">Submit</button></td>
-            </tr>
-        </table>
-        <hr />
-    </form>
+                </div>
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                        <input asp-for="ShowDetails" type="checkbox" class="custom-control-input" id="ShowDetailst">
+                        <label class="custom-control-label" for="ShowDetails">Show HTTP Details</label>
+                    </div>
+                </div>
 
-    <textarea asp-for="TxtStatus" style="width: 100%; font-family: monospace; font-size: 12px" rows="50" readonly></textarea>
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                        <input asp-for="ParseResponse" type="checkbox" class="custom-control-input" id="ParseResponse">
+                        <label class="custom-control-label" for="ParseResponse">Parse the Response</label>
+                    </div>
+                </div>
+
+                <div class="form-group text-center">
+                    <button type="submit" asp-page-handler="Submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i> Submit
+                    </button>
+                </div>
+            </form>
+            <textarea asp-for="TxtStatus" class="form-control mt-3" style="font-family: monospace; font-size: 10px" rows="18" readonly></textarea>
+        </div>
+
+    </div>
 </div>

@@ -55,9 +55,13 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2023 - SAPTools.mx - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="footer bg-light text-muted">
+        <div class="container py-3">
+            <div class="row">
+                <div class="col-md-6 text-md-right">
+                    <p>&copy; @(DateTime.Now.Year) SAP Tools. All rights reserved. | <a href="/Privacy" class="text-dark">Privacy Policy</a></p>
+                </div>
+            </div>
         </div>
     </footer>
 

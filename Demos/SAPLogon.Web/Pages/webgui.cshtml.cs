@@ -34,17 +34,17 @@ public class WebGuiModel : PageModel {
         UserList = await usersTask;
     }
 
-    public async Task<IActionResult> OnPostSubmit() {
+    public async Task OnPostSubmit() {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
 
         if(String.IsNullOrWhiteSpace(Cert)) {
             TxtStatus = "Please select a valid certificate";
-            return Page();
+            return;
         }
 
         if(String.IsNullOrWhiteSpace(UserName)) {
             TxtStatus = "Please select a valid user";
-            return Page();
+            return;
         }
 
         // Start both tasks without awaiting them immediately to potentially run them in parallel
@@ -79,8 +79,6 @@ public class WebGuiModel : PageModel {
         // Once the cookie is set, redirect to the SAP system:
         string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
         Response.Redirect(url);
-
-        return Page();
     }
 
     private void DeleteCookie(string cookieName) {

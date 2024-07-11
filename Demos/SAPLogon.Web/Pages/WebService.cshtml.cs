@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPLogon.Web.Common;
 using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
+using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Text;
 using System.Xml.Linq;
@@ -16,6 +17,10 @@ public class WSModel : PageModel {
     [BindProperty]
     public string? UserName { get; set; }
     [BindProperty]
+    public bool ShowDetails{ get; set; } = false;
+    [BindProperty]
+    public bool ParseResponse{ get; set; } = false;
+
     public string TxtStatus { get; set; } = "";
     public List<SelectListItem>? CertList { get; private set; } = [];
     public List<SelectListItem>? UserList { get; private set; } = [];
@@ -83,33 +88,39 @@ public class WSModel : PageModel {
             client.DefaultRequestHeaders.Add("MYSAPSSO2", mysapsso2);
 
             using(HttpContent content = new StringContent(SoapPayload, Encoding.UTF8, "text/xml")) {
-                sb.AppendLine($"Calling {uri}")
-                  .AppendLine("\nRequest Headers:")
-                  .AppendLine(String.Join("\n", client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
-                  .AppendLine("\nRequest Body:")
-                  .AppendLine(SoapPayload);
+                if(ShowDetails)
+                    sb.AppendLine($"Calling {uri}")
+                      .AppendLine("\nRequest Headers:")
+                      .AppendLine(String.Join("\n", client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
+                      .AppendLine("\nRequest Body:")
+                      .AppendLine(SoapPayload);
 
                 // Send the request and wait for the response
                 HttpResponseMessage response = await client.PostAsync(uri, content);
                 string responseXML = await response.Content.ReadAsStringAsync();
 
-                sb.AppendLine($"\nHTTP Status Code: {response.StatusCode}");
+                sb.AppendLine($"HTTP Status Code: {response.StatusCode}").AppendLine();
                 if(response.StatusCode != HttpStatusCode.OK) {
-                    sb.AppendLine($"\nError: {response.ReasonPhrase}");
+                    sb.AppendLine($"Error: {response.ReasonPhrase}");
                     return sb.ToString();
                 }
 
                 // Append the response headers and body to the StringBuilder
-                sb.AppendLine("\nResponse Headers:")
-                  .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
-                  .AppendLine("\nResponse Body:")
-                  .AppendLine(responseXML);
-
-                // Parse the XML response to get the SYSINFO element
-                XDocument xmlDoc = XDocument.Parse(responseXML);
-                XElement? SysInfo = xmlDoc.Descendants().FirstOrDefault(x => x.Name.LocalName == "SYSINFO");
-                sb.AppendLine("\nSYSINFO:")
-                  .AppendLine(SysInfo == null ? "No SYSINFO element found" : SysInfo.ToString().Replace("><", ">\n<"));
+                if(!ParseResponse || ShowDetails) {
+                    sb.AppendLine("Response Headers:")
+                      .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
+                      .AppendLine();
+                }
+                if(!ParseResponse) {
+                    sb.AppendLine("Response Body:")
+                      .AppendLine(responseXML);
+                } else { 
+                    // Parse the XML response to get the SYSINFO element
+                    XDocument xmlDoc = XDocument.Parse(responseXML);
+                    XElement? SysInfo = xmlDoc.Descendants().FirstOrDefault(x => x.Name.LocalName == "SYSINFO");
+                    
+                    sb.AppendLine(SysInfo == null ? "No SYSINFO element found" : SysInfo.ToString());
+                }
             }
         }
         return sb.ToString();
