@@ -10,16 +10,16 @@ Analyze the generated MYSAPSSO2 cookie using the [SAP Logon Ticket Decoder](http
 ## Certificate Algorithms
 The application supports three types of certificate algorithms: DSA, RSA, and ECDSA. The key size varies depending on the chosen algorithm. The following certificates are pre-loaded into the application and the SAP Demo System for demonstration purposes:
 
-| Name                | Algorithm | Key Size |
-|---------------------|-----------|----------|
-| SAP SSO DSA 1024    | DSA       | 1024     |
-| SAP SSO RSA 1024    | RSA       | 1024     |
-| SAP SSO RSA 2048    | RSA       | 2048     |
-| SAP SSO RSA 3072    | RSA       | 3072     |
-| SAP SSO RSA 4096    | RSA       | 4096     |
-| SAP SSO ECDSA P-256 | ECDSA     | P-256    |
-| SAP SSO ECDSA P-384 | ECDSA     | P-384    |
-| SAP SSO ECDSA P-521 | ECDSA     | P-521    |
+ | Name                | Algorithm | Key Size |
+ |---------------------|-----------|----------|
+ | SAP SSO DSA 1024    | DSA       | 1024     |
+ | SAP SSO RSA 1024    | RSA       | 1024     |
+ | SAP SSO RSA 2048    | RSA       | 2048     |
+ | SAP SSO RSA 3072    | RSA       | 3072     |
+ | SAP SSO RSA 4096    | RSA       | 4096     |
+ | SAP SSO ECDSA P-256 | ECDSA     | P-256    |
+ | SAP SSO ECDSA P-384 | ECDSA     | P-384    |
+ | SAP SSO ECDSA P-521 | ECDSA     | P-521    |
 
 > **Note:** Please verify that your chosen algorithm is supported by your SAP System: [How can I verify this?](https://github.com/avadillo/SAPLogon/blob/master/README.md#how-can-i-verify-if-a-specific-certificate-algorithm-is-supported-by-my-sap-netweaver-version)
 
@@ -76,3 +76,19 @@ To verify if a specific certificate algorithm is supported by your SAP NetWeaver
 5.	Test Configuration: If you have the capability, you might try configuring a service (e.g., HTTPS for a web service) with a certificate using the algorithm in question and see if the system accepts it and functions correctly. This should be done in a test environment to avoid impacting production systems.
 6.	Contact SAP Support: If you're unable to find the information you need or if you have specific questions about your system's capabilities, contacting SAP Support directly can be a helpful way to get authoritative answers.
 Remember, the support for specific cryptographic algorithms can depend not only on the SAP NetWeaver version but also on the underlying operating system
+
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+- [SAP Logon Ticket Decoder](https://saptools.mx/mysapsso2)
+- [SAP NetWeaver Documentation](https://help.sap.com/doc/saphelp_nw75/7.5.5/en-US/4d/a5ddc832211dcde10000000a42189c/content.htm)
+- [SAP Cryptographic Library](https://help.sap.com/doc/saphelp_nw75/7.5.5/en-US/4d/a5ddc832211dcde10000000a42189c/content.htm)
+- [SAP Support Portal](https://support.sap.com/en/index.html)
+- [SAP Notes](https://support.sap.com/en/my-support/notes.html)
+- [Microsoft Azure Documentation](https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate)
+- [Microsoft Windows Documentation](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certmgr)
+- [OpenSSL Documentation](https://www.openssl.org)
+- [SAPGENPSE Documentation](https://help.sap.com/doc/saphelp_nw75/7.5.5/en-US/4d/a5ddc832211dcde10000000a42189c/content.htm)
+- [SAP Tools](https://saptools.mx)
