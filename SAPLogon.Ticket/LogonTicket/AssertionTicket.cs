@@ -3,10 +3,16 @@
 namespace SAPTools.LogonTicket;
 
 public class AssertionTicket : Ticket {
+    /// <summary>
+    /// Recipient System ID (SID)
+    /// </summary>
     public required string RcptSysID { get; set; }
+    /// <summary>
+    /// Recipient System Client (MANDT)
+    /// </summary>
     public required string RcptSysClient { get; set; }
 
-    public override void EncodeInfoUnits() {
+    protected override void EncodeInfoUnits() {
         base.ValidTime = 2;
         base.EncodeInfoUnits();
         base.InfoUnits.Add(new(InfoUnitID.RecipientClient, RcptSysClient));
