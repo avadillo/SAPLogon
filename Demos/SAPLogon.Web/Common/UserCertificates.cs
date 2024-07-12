@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 
-namespace SAPTools.LogonTicket;
+namespace SAPLogon.Web;
 public static class UserCertificates {
     // Read the certificates from the CurrentUser\My store and sort them by algorithm
     // This is executed only once when the class is loaded
@@ -15,7 +15,7 @@ public static class UserCertificates {
         List<X509Certificate2> certList = [.. store.Certificates
             .Find(X509FindType.FindBySubjectName, "SAP Tools", false)
             .Cast<X509Certificate2>()
-            .OrderBy(x => x.Subject, comparer)];
+            .OrderBy(x => x.Subject, comparer)]; // For demo purposes, sort the certificates by algorithm
         store.Close();
         return certList;
     });
@@ -33,6 +33,7 @@ public static class UserCertificates {
         (await Certificates).FirstOrDefault(cert => cert.Subject == subject)?.Thumbprint ?? throw new Exception("Certificate not found");
 
     // Sorts the certificates by algorithm: DSA, RSA, ECDSA
+    // This is only for demo purposes. The real implementation do not need to sort the certificates.
     private class AlgComparer : IComparer<object> {
         public int Compare(object? stringA, object? stringB) {
             string string1 = stringA?.ToString()!.Replace("DSA", "1").Replace("RSA", "2").Replace("ECDSA", "3") ?? "";
@@ -43,6 +44,7 @@ public static class UserCertificates {
 
     public static async Task<(string, string)> GetTypeAndPosition(string thumbprint) {
         // Get artificial values for SID and Client to send the ticket
+        // This is just for building the certificate list for demo purposes
         var cert = await GetCertificate(thumbprint);
         string alg = cert.PublicKey.Oid.Value switch {
             "1.2.840.10040.4.1" => "DSA",
