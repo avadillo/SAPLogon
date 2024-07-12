@@ -1,5 +1,15 @@
-html {
-  font-size: 14px;
+@font-face {
+    font-family: "bentonsans regular";
+    font-style: normal;
+    font-weight: 400;
+    src: local('BentonSans Regular'),url(https://fonts.cdnfonts.com/s/12954/BentonSans-Regular.woff) format('woff');
+    font-display: swap;
+}
+
+html, body {
+    /*font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;*/
+    font-family: "bentonsans regular", Arial, Helvetica, sans-serif;
+    /*font-family: 'BentonSans Regular', sans-serif;*/
 }
 
 @media (min-width: 768px) {
@@ -25,4 +35,16 @@ body {
     background-color: #f8f9fa; /* Bootstrap's gray-100, for example */
     padding: 1rem;
     border-radius: .25rem;
+    font-size: 80%;
+}
+
+.table-smaller {
+    margin: auto;
+    width: 80%;
+    font-size: 90%;
+}
+
+.sap {
+    font-family: 'bentonsans regular', Arial, Helvetica, sans-serif;
+    font-weight: 200;
 }

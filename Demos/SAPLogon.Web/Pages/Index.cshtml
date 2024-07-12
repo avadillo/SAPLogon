@@ -30,7 +30,7 @@
             <h3>Certificate Algorithms</h3>
             <p>The application supports three types of certificate algorithms: DSA, RSA, and ECDSA. The key size varies depending on the chosen algorithm. The following certificates are pre-loaded into the application and the SAP Demo System for demonstration purposes:</p>
 
-            <table class="table">
+            <table class="table table-smaller">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -89,8 +89,8 @@
         <section>
             <h3>Certificate Generation</h3>
             <p>Certificates can be generated using <code>OpenSSL</code> or <code>sapgenpse</code>. Below is an example of generating a certificate with <code>sapgenpse</code>:</p>
-            <div class="code-background"
-><pre><code># Choose an algorithm and a key size:
+            <div>
+<pre class="code-background"><code># Choose an algorithm and a key size:
 ALG=RSA
 SIZE=4096
 
@@ -103,14 +103,17 @@ CN="OU=SAP Tools, CN=SAP SSO ${ALG} ${SIZE}"
 rm ${SECUDIR}/${FILENAME}.pse ${FILENAME}.crt ${FILENAME}.pfx 2&gt;/dev/null
 sapgenpse gen_pse -a $ALG -s $SIZE -p ${FILENAME} -x 12345678 "${CN}"
 sapgenpse export_own_cert -p $FILENAME -x 12345678 -o ${FILENAME}.crt
-sapgenpse export_p12 -p $FILENAME -x 12345678 -z 12345678 -f cn ${FILENAME}.pfx
-</code></pre>
+sapgenpse export_p12 -p $FILENAME -x 12345678 -z 12345678 -f cn ${FILENAME}.pfx</code></pre>
             </div>
         </section>
         <section>
             <h3>Source Code</h3>
             <p>The source code for these demos can be found on GitHub:
             <a href="https://github.com/avadillo/SAPLogon">https://github.com/avadillo/SAPLogon</a> </p>
+        </section>
+        <section>
+            <h3>Additional Tools</h3>
+            <p>More tools at <a href="https://saptools.mx">https://saptools.mx</a></p>
         </section>
     </main>
 

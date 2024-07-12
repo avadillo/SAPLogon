@@ -127,12 +127,5 @@ public class WSModel : PageModel {
         return sb.ToString();
     }
 
-    private const string SoapPayload = $@"
-<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:urn=""urn:sap-com:document:sap:rfc:functions"">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <urn:CAT_PING/>
-   </soapenv:Body>
-</soapenv:Envelope>
-";
+    private const string SoapPayload = $@"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:urn=""urn:sap-com:document:sap:rfc:functions""><soapenv:Header/><soapenv:Body><urn:CAT_PING/></soapenv:Body></soapenv:Envelope>\n";
 }
