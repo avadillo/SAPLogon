@@ -1,10 +1,10 @@
 {
   "name": "SAP Logon",
   "short_name": "SAP Logon",
-  "description": "A PoC for generating SAP Logon Tickets with C#",
+  "description": "SAP Logon Tickets with C#",
   "theme_color": "#303030",
   "background_color": "#303030",
-  "start_url": "https://saplogon.saptools.mx",
+  "start_url": "https://sapnwa.saptools.mx",
   "display": "fullscreen",
   "icons": [
     {
