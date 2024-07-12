@@ -20,3 +20,9 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.code-background {
+    background-color: #f8f9fa; /* Bootstrap's gray-100, for example */
+    padding: 1rem;
+    border-radius: .25rem;
+}

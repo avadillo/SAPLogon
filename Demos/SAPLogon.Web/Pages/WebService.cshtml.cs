@@ -17,7 +17,9 @@ public class WSModel : PageModel {
     [BindProperty]
     public string? UserName { get; set; }
     [BindProperty]
-    public bool ShowDetails{ get; set; } = false;
+    public bool ShowRequest{ get; set; } = false;
+    [BindProperty]
+    public bool ShowResponseHeaders { get; set; } = false;
     [BindProperty]
     public bool ParseResponse{ get; set; } = false;
 
@@ -88,7 +90,7 @@ public class WSModel : PageModel {
             client.DefaultRequestHeaders.Add("MYSAPSSO2", mysapsso2);
 
             using(HttpContent content = new StringContent(SoapPayload, Encoding.UTF8, "text/xml")) {
-                if(ShowDetails)
+                if(ShowRequest)
                     sb.AppendLine($"Calling {uri}")
                       .AppendLine("\nRequest Headers:")
                       .AppendLine(String.Join("\n", client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
@@ -106,7 +108,7 @@ public class WSModel : PageModel {
                 }
 
                 // Append the response headers and body to the StringBuilder
-                if(!ParseResponse || ShowDetails) {
+                if(ShowResponseHeaders) {
                     sb.AppendLine("Response Headers:")
                       .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
                       .AppendLine();
@@ -117,8 +119,7 @@ public class WSModel : PageModel {
                 } else { 
                     // Parse the XML response to get the SYSINFO element
                     XDocument xmlDoc = XDocument.Parse(responseXML);
-                    XElement? SysInfo = xmlDoc.Descendants().FirstOrDefault(x => x.Name.LocalName == "SYSINFO");
-                    
+                    XElement? SysInfo = xmlDoc.Descendants().FirstOrDefault(x => x.Name.LocalName == "SYSINFO");                 
                     sb.AppendLine(SysInfo == null ? "No SYSINFO element found" : SysInfo.ToString());
                 }
             }
