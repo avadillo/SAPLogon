@@ -77,7 +77,6 @@ public class WebGuiModel : PageModel {
             ValidTime = 10,
             Certificate = certificate
         };
-        if (_language != null) ticket.Language = _language.Value;
 
         CookieOptions cookieOptions = new() {
             Path = "/",
@@ -92,8 +91,9 @@ public class WebGuiModel : PageModel {
         Response.Cookies.Append("MYSAPSSO2", ticket.Create(), cookieOptions);
 
         // Once the cookie is set, redirect to the SAP system:
-        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui";
+        string url = $"https://sapnwa.{domain}/sap/bc/gui/sap/its/webgui?sap-language={_language?.ToString() ?? "EN"}";
         Response.Redirect(url);
+
     }
 
     private void DeleteCookie(string cookieName) {

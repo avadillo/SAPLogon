@@ -67,7 +67,7 @@ public class WSModel : PageModel {
         };
         if (CertList.Count > 0) Cert = CertList[CertList.Count - 1].Value;
         if (UserList.Count > 0) UserName = UserList[0].Value;
-        if(ServiceList.Count > 0) Service = "Languages";
+        if(ServiceList.Count > 0) Service = "2";
     }
 
     public async Task<IActionResult> OnPostSubmit() {

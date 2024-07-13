@@ -48,3 +48,7 @@ body {
     font-family: 'bentonsans regular', Arial, Helvetica, sans-serif;
     font-weight: 200;
 }
+
+textarea {
+    font-family: Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+}
