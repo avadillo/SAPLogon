@@ -30,7 +30,7 @@ public class WSModel : PageModel {
     [BindProperty]
     public bool ShowResponseHeaders { get; set; } = false;
     [BindProperty]
-    public bool ParseResponse { get; set; } = false;
+    public bool ParseResponse { get; set; } = true;
 
     public string TxtStatus { get; set; } = "";
     public List<SelectListItem>? CertList { get; private set; } = [];
@@ -182,7 +182,7 @@ public class WSModel : PageModel {
         sb.AppendLine("Response Body:");
         if(ParseResponse) {
             try {
-                sb.Append(WebServices.CreateTable(responseXML, soapXPathQuery, columns));
+                sb.Append(AsciiTable.CreateTable(responseXML, soapXPathQuery, columns));
             } catch(Exception ex) {
                 sb.AppendLine($"Error parsing response: {ex.Message}");
             }
