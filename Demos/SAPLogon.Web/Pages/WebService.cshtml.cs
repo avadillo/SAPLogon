@@ -155,29 +155,26 @@ public class WSModel : PageModel {
         request.Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
 
         // Log request if needed
-        if(ShowRequest) {
+        if(ShowRequest) 
             sb.AppendLine($"Calling {uri}")
               .AppendLine("\nRequest Headers:")
               .AppendLine(String.Join("\n", request.Headers.Concat(request.Content.Headers).Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
               .AppendLine("\nRequest Body:")
-              .AppendLine(soapEnvelope);
-        }
+              .AppendLine(soapEnvelope)
+              .AppendLine();
 
         // Send the request and wait for the response
         HttpResponseMessage response = await client.SendAsync(request);
         string responseXML = await response.Content.ReadAsStringAsync();
 
-        sb.AppendLine($"HTTP Status Code: {response.StatusCode}").AppendLine();
-        if(response.StatusCode != HttpStatusCode.OK) {
-            sb.AppendLine($"Error: {response.ReasonPhrase}");
-        }
+        sb.AppendLine($"HTTP Status Code: {response.StatusCode}")
+          .AppendLine(response.StatusCode == HttpStatusCode.OK ? "" : $"Error: {response.ReasonPhrase}");
 
         // Log response if needed
-        if(ShowResponseHeaders) {
+        if(ShowResponseHeaders)
             sb.AppendLine("Response Headers:")
               .AppendLine(String.Join("\n", response.Headers.Concat(response.Content.Headers).Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
               .AppendLine();
-        }
 
         sb.AppendLine("Response Body:");
         if(ParseResponse) {
@@ -186,12 +183,8 @@ public class WSModel : PageModel {
             } catch(Exception ex) {
                 sb.AppendLine($"Error parsing response: {ex.Message}");
             }
-        } else {
-            sb.AppendLine(responseXML);
-        }
-
+        } else sb.AppendLine(responseXML);
 
         return sb.ToString();
     }
-
   }
