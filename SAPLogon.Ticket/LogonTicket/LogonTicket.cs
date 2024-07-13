@@ -12,5 +12,4 @@ public class LogonTicket : Ticket {
             base.InfoUnits.Add(new(InfoUnitID.PortalUser, $"portal:{PortalUser}"));
         base.InfoUnits.Add(new(InfoUnitID.AuthScheme, "default"));
     }
-
 }

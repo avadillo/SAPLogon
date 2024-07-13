@@ -12,10 +12,18 @@ public class WebGuiModel : PageModel {
     public string? Cert { get; set; }
     [BindProperty]
     public string? UserName { get; set; }
+    [BindProperty]
+    public string? Language {
+        get => _language.ToString();
+        set => _language = value != null ? Enum.Parse<SAPLanguage>(value):null;
+    }
+    [BindProperty]
     public string TxtStatus { get; set; } = "";
     public List<SelectListItem>? CertList { get; private set; } = [];
     public List<SelectListItem>? UserList { get; private set; } = [];
+    public List<SelectListItem>? LangList { get; private set; } = [];
 
+    private SAPLanguage? _language;
     public WebGuiModel() => InitializeLists().Wait();
 
     public async Task InitializeLists() {
@@ -24,14 +32,21 @@ public class WebGuiModel : PageModel {
             .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }).ToList());
 
         Task<List<SelectListItem>> usersTask = WebServices.WebGUIUsers
-            .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.NameText, Value = user.Bname }).ToList());
+            .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
+
+        Task<List<SelectListItem>> languagesTask = WebServices.InstalledLanguages
+            .ContinueWith(task => task.Result.Select(lang => new SelectListItem { Text = $"{lang.Name} ({lang.ISOCode})", Value = lang.ISOCode }).ToList());
 
         // Wait for both operations to complete
-        await Task.WhenAll(certificatesTask, usersTask);
+        await Task.WhenAll(certificatesTask, usersTask, languagesTask);
 
         // Retrieve the results
         CertList = await certificatesTask;
         UserList = await usersTask;
+        LangList = await languagesTask;
+
+        if(CertList.Count > 0) Cert = CertList[CertList.Count - 1].Value;
+        if(UserList.Count > 0) UserName = UserList[0].Value;
     }
 
     public async Task OnPostSubmit() {
@@ -60,9 +75,9 @@ public class WebGuiModel : PageModel {
             SysClient = sysClient,
             User = UserName,
             ValidTime = 10,
-            Language = SAPLanguage.EN,
             Certificate = certificate
         };
+        if (_language != null) ticket.Language = _language.Value;
 
         CookieOptions cookieOptions = new() {
             Path = "/",

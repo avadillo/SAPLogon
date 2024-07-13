@@ -88,7 +88,6 @@ public enum InfoUnitID : byte {
     [Description("Not Defined")] NotDefined = 0x00
 }
 
-
 [Flags]
 public enum InfoUnitFlags : byte {
     [Description("No Flags ")] None = 0x00,

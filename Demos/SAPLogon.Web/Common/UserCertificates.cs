@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 
-namespace SAPLogon.Web;
+namespace SAPLogon.Web.Common;
 public static class UserCertificates {
     // Read the certificates from the CurrentUser\My store and sort them by algorithm
     // This is executed only once when the class is loaded

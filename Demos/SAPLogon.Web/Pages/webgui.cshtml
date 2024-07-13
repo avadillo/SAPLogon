@@ -20,7 +20,13 @@
                 <div class="form-group">
                     <label for="UserName">User ID:</label>
                     <select asp-for="UserName" asp-items="Model.UserList" class="form-control">
-                        <option value="">-- Select a user name --</option>
+                        <option value="">-- Select an user name --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="UserName">Language:</label>
+                    <select asp-for="Language" asp-items="Model.LangList" class="form-control">
+                        <option value="">-- Select a language --</option>
                     </select>
                 </div>
                 <div class="form-group text-center">

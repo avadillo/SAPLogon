@@ -1,11 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPLogon.Web.Common;
 using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
+using System.Data;
 using System.Diagnostics.Eventing.Reader;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Xml.Linq;
 
@@ -17,33 +19,55 @@ public class WSModel : PageModel {
     [BindProperty]
     public string? UserName { get; set; }
     [BindProperty]
-    public bool ShowRequest{ get; set; } = false;
+    public string? Language {
+        get => _language.ToString();
+        set => _language = value != null ? Enum.Parse<SAPLanguage>(value): null;
+    }
+    [BindProperty]
+    public string Service { get; set; } = "Languages";
+    [BindProperty]
+    public bool ShowRequest { get; set; } = false;
     [BindProperty]
     public bool ShowResponseHeaders { get; set; } = false;
     [BindProperty]
-    public bool ParseResponse{ get; set; } = false;
+    public bool ParseResponse { get; set; } = false;
 
     public string TxtStatus { get; set; } = "";
     public List<SelectListItem>? CertList { get; private set; } = [];
     public List<SelectListItem>? UserList { get; private set; } = [];
-
+    public List<SelectListItem>? LangList { get; private set; } = [];
+    public List<SelectListItem>? ServiceList { get; private set; } = [];
 
     public WSModel() => InitializeLists().Wait();
 
+    private SAPLanguage? _language;
     public async Task InitializeLists() {
         // Start both asynchronous operations
         Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
             .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }).ToList());
 
         Task<List<SelectListItem>> usersTask = WebServices.WebServiceUsers
-            .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.NameText, Value = user.Bname }).ToList());
+            .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
+
+        Task<List<SelectListItem>> languagesTask = WebServices.InstalledLanguages
+            .ContinueWith(task => task.Result.Select(lang => new SelectListItem { Text = $"{lang.Name} ({lang.ISOCode})", Value = lang.ISOCode }).ToList());
 
         // Wait for both operations to complete
-        await Task.WhenAll(certificatesTask, usersTask);
+        await Task.WhenAll(certificatesTask, usersTask, languagesTask);
 
         // Retrieve the results
         CertList = await certificatesTask;
         UserList = await usersTask;
+        LangList = await languagesTask;
+        ServiceList = new() {
+            new SelectListItem { Text = "1 - Get System Info", Value = "1" },
+            new SelectListItem { Text = "2 - Get Installed Languages", Value = "2" },
+            new SelectListItem { Text = "3 - List Available Web GUI Users", Value = "3" },
+            new SelectListItem { Text = "4 - List Available WebService Users", Value = "4" }
+        };
+        if (CertList.Count > 0) Cert = CertList[CertList.Count - 1].Value;
+        if (UserList.Count > 0) UserName = UserList[0].Value;
+        if(ServiceList.Count > 0) Service = "Languages";
     }
 
     public async Task<IActionResult> OnPostSubmit() {
@@ -54,6 +78,11 @@ public class WSModel : PageModel {
 
         if(String.IsNullOrEmpty(UserName)) {
             TxtStatus = "Please select a valid user";
+            return Page();
+        }
+
+        if(String.IsNullOrEmpty(Service)) {
+            TxtStatus = "Please select a valid service";
             return Page();
         }
 
@@ -69,63 +98,100 @@ public class WSModel : PageModel {
             SysID = sysId,
             SysClient = sysClient,
             User = UserName,
-            Language = SAPLanguage.EN,
             RcptSysID = "NWA",
             RcptSysClient = "752",
             Certificate = certificate
         };
 
-        // Call the SAP Web Service and wait for the response
-        Uri uri = new(@"https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/cat_ping/752/zcatping/test");
-        TxtStatus = await GetInfoAsync(uri, ticket.Create());
+        if (_language != null) ticket.Language = _language.Value;
 
+        TxtStatus = await ExecuteService(Service, ticket.Create());
         return Page();
     }
 
+    private async  Task<string> ExecuteService(string service, string mysapsso2) {
+        // Call the SAP Web Service and wait for the response
+        Uri uri = new(@"https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services");
 
-    public async Task<string> GetInfoAsync(Uri uri, string mysapsso2) {
+        var soapAction = @"urn:sap-com:document:sap:soap:functions:mc-style:ZSSODEMO:" + Service switch {
+            "1" => "ZGetSystemInfoRequest",
+            "2" => "ZGetInstalledLanguagesRequest",
+            "3" or "4" => "ZGetUsersByGroupRequest",
+            _ => throw new InvalidOperationException("Invalid service")
+        };
+
+        var soapXPathQuery = @"//soapenv:Envelope/soapenv:Body/d:" + Service switch {
+            "1" => "ZGetSystemInfoResponse/Sysinfo",
+            "2" => "ZGetInstalledLanguagesResponse/TLangu/item",
+            "3" or "4" => "ZGetUsersByGroupResponse/Names/item",
+            _ => throw new InvalidOperationException("Invalid service")
+        };
+
+        var columns = Service switch {
+            "1" => new[] { "Sysid", "Mandt", "Langu", "Uname", "Sapr", "Host", "Opsys", "Dbsys", "Datum", "Uzeit" },
+            "2" => new[] { "Spras", "Laiso", "Sptxt" },
+            "3" or "4" => new[] { "Bname", "Class", "NameText" },
+            _ => throw new InvalidOperationException("Invalid service")
+        };
+
+        var soapEnv = Service switch {
+            "1" => WebServices.GetSystemInfoEnv(),
+            "2" => WebServices.GetInstalledLanguagesEnv(),
+            "3" => WebServices.GetUsersByGroupEnv("WEBGUI"),
+            "4" => WebServices.GetUsersByGroupEnv("WEBSERVICE"),
+            _ => throw new InvalidOperationException("Invalid service")
+        };
+        return await GetResponseAsync(uri, soapAction, soapEnv, soapXPathQuery, columns, mysapsso2);
+    }
+
+    public async Task<string> GetResponseAsync(Uri uri, string soapAction, string soapEnvelope, string soapXPathQuery, string[] columns, string mysapsso2) {
         StringBuilder sb = new();
-        using(HttpClient client = new()) {
-            client.DefaultRequestHeaders.Add("SOAPAction", "\"urn:sap-com:document:sap:rfc:functions:CAT_PING:CAT_PINGRequest\"");
-            client.DefaultRequestHeaders.Add("MYSAPSSO2", mysapsso2);
+        HttpClient client = new();
 
-            using(HttpContent content = new StringContent(SoapPayload, Encoding.UTF8, "text/xml")) {
-                if(ShowRequest)
-                    sb.AppendLine($"Calling {uri}")
-                      .AppendLine("\nRequest Headers:")
-                      .AppendLine(String.Join("\n", client.DefaultRequestHeaders.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
-                      .AppendLine("\nRequest Body:")
-                      .AppendLine(SoapPayload);
+        // Prepare the request
+        HttpRequestMessage request = new(HttpMethod.Post, uri);
+        request.Headers.Add("SOAPAction", soapAction);
+        request.Headers.Add("MYSAPSSO2", mysapsso2);
+        request.Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
 
-                // Send the request and wait for the response
-                HttpResponseMessage response = await client.PostAsync(uri, content);
-                string responseXML = await response.Content.ReadAsStringAsync();
-
-                sb.AppendLine($"HTTP Status Code: {response.StatusCode}").AppendLine();
-                if(response.StatusCode != HttpStatusCode.OK) {
-                    sb.AppendLine($"Error: {response.ReasonPhrase}");
-                    return sb.ToString();
-                }
-
-                // Append the response headers and body to the StringBuilder
-                if(ShowResponseHeaders) {
-                    sb.AppendLine("Response Headers:")
-                      .AppendLine(String.Join("\n", response.Headers.Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
-                      .AppendLine();
-                }
-                if(!ParseResponse) {
-                    sb.AppendLine("Response Body:")
-                      .AppendLine(responseXML);
-                } else { 
-                    // Parse the XML response to get the SYSINFO element
-                    XDocument xmlDoc = XDocument.Parse(responseXML);
-                    XElement? SysInfo = xmlDoc.Descendants().FirstOrDefault(x => x.Name.LocalName == "SYSINFO");                 
-                    sb.AppendLine(SysInfo == null ? "No SYSINFO element found" : SysInfo.ToString());
-                }
-            }
+        // Log request if needed
+        if(ShowRequest) {
+            sb.AppendLine($"Calling {uri}")
+              .AppendLine("\nRequest Headers:")
+              .AppendLine(String.Join("\n", request.Headers.Concat(request.Content.Headers).Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
+              .AppendLine("\nRequest Body:")
+              .AppendLine(soapEnvelope);
         }
+
+        // Send the request and wait for the response
+        HttpResponseMessage response = await client.SendAsync(request);
+        string responseXML = await response.Content.ReadAsStringAsync();
+
+        sb.AppendLine($"HTTP Status Code: {response.StatusCode}").AppendLine();
+        if(response.StatusCode != HttpStatusCode.OK) {
+            sb.AppendLine($"Error: {response.ReasonPhrase}");
+        }
+
+        // Log response if needed
+        if(ShowResponseHeaders) {
+            sb.AppendLine("Response Headers:")
+              .AppendLine(String.Join("\n", response.Headers.Concat(response.Content.Headers).Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
+              .AppendLine();
+        }
+
+        sb.AppendLine("Response Body:");
+        if(ParseResponse) {
+            try {
+                sb.Append(WebServices.CreateTable(responseXML, soapXPathQuery, columns));
+            } catch(Exception ex) {
+                sb.AppendLine($"Error parsing response: {ex.Message}");
+            }
+        } else {
+            sb.AppendLine(responseXML);
+        }
+
+
         return sb.ToString();
     }
 
-    private const string SoapPayload = $@"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:urn=""urn:sap-com:document:sap:rfc:functions""><soapenv:Header/><soapenv:Body><urn:CAT_PING/></soapenv:Body></soapenv:Envelope>\n";
-}
+  }

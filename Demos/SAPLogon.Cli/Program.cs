@@ -1,5 +1,4 @@
 ﻿using SAPLogon.Web.Common;
-using SAPTools.LogonTicket;
 
 string subject = "OU=SAP Tools, CN=SAP SSO RSA 4096";
 Console.WriteLine($@"Getting certificate by subject  ""{subject}""");
@@ -12,6 +11,8 @@ Console.WriteLine($"Certificate Thumpbrint: {cert.Thumbprint}");
 Console.WriteLine();
 Console.WriteLine("Getting the list of valid users for the WebGUI Demo:");
 
-int i = 0;
 foreach(var a in WebServices.WebGUIUsers.Result)
-    Console.WriteLine($"{++i:D2}: {a.NameText} ({a.Bname})");
+    Console.WriteLine($"{a.FullName} ({a.User})");
+
+foreach (var a in WebServices.InstalledLanguages.Result)
+    Console.WriteLine($"{a.SAPCode} - {a.ISOCode} - {a.Name}");
