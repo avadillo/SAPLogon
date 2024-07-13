@@ -32,11 +32,6 @@ public abstract class Ticket {
     /// </summary>
     public required X509Certificate2 Certificate { get; set; }
     /// <summary>
-    /// SAP Logon Language
-    /// Please use the SAPLanguage enum for this property
-    /// </summary>
-    public SAPLanguage Language { get; set; } = SAPLanguage.None;
-    /// <summary>
     /// Include the certificate in the ticket.
     /// Not included by default.
     /// </summary>
@@ -47,7 +42,7 @@ public abstract class Ticket {
 
     protected List<InfoUnit> InfoUnits { get; set; } = [];
     private byte[] TicketContent { get; set; } = [];
-    private Encoding InternalEncoding = Encoding.ASCII;
+    protected Encoding InternalEncoding = Encoding.ASCII;
 
     public string ToBase64 => SAPTools.Utils.Base64.Encode(TicketContent);
     public byte[] ToBytes => TicketContent;
@@ -99,8 +94,6 @@ public abstract class Ticket {
         InfoUnits.Add(new(InfoUnitID.CreateClient, SysClient, InternalEncoding));
         InfoUnits.Add(new(InfoUnitID.CreateSID, SysID, InternalEncoding));
         InfoUnits.Add(new(InfoUnitID.CreateTime, DateTime.UtcNow, InternalEncoding));
-        if(Language != SAPLanguage.None)
-            InfoUnits.Add(new(InfoUnitID.Language, Language, InternalEncoding));
 
         // The following InfoUnits do not need an encoding
         InfoUnits.Add(new(InfoUnitID.ValidTimeInM, ValidTime % 60));
