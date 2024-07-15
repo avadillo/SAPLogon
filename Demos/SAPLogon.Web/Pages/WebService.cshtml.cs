@@ -118,8 +118,8 @@ public class WSModel : PageModel {
         };
 
         var columns = Service switch {
-            "1" => new[] { "Sysid", "Mandt", "Langu", "Uname", "Sapr", "Host", "Opsys", "Dbsys", "Datum", "Uzeit" },
-            "2" => new[] { "Spras", "Laiso", "Sptxt" },
+            "1" => ["Sysid", "Mandt", "Langu", "Uname", "Saprl", "Host", "Opsys", "Dbsys", "Datum", "Uzeit"],
+            "2" => ["Spras", "Laiso", "Sptxt"],
             "3" or "4" => new[] { "Bname", "Class", "NameText" },
             _ => throw new InvalidOperationException("Invalid service")
         };
