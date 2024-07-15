@@ -24,13 +24,13 @@ public abstract class Ticket {
     /// </summary>
     public required string SysClient { get; set; }
     /// <summary>
+    /// The subject of the certificate used to sign the ticket.
+    /// </summary>
+    public required string Subject { get; set; } 
+    /// <summary>
     /// Validity time of the ticket in minutes.
     /// </summary>
-    public virtual uint ValidTime { get; set; } = 0;
-    /// <summary>
-    /// The certificate used to sign the ticket.
-    /// </summary>
-    public required X509Certificate2 Certificate { get; set; }
+    public virtual uint ValidTime { get; set; } 
     /// <summary>
     /// Include the certificate in the ticket.
     /// Not included by default.
@@ -73,14 +73,15 @@ public abstract class Ticket {
         using X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);
 
+        X509Certificate2 cert = UserCertificates.GetCertificateBySubject(Subject).Result;
         ContentInfo content = new(new Oid("1.2.840.113549.1.7.1"), data); // PKCS7
         SignedCms signedCms = new(content, true);
-        CmsSigner signer = new(SubjectIdentifierType.IssuerAndSerialNumber, Certificate) {
+        CmsSigner signer = new(SubjectIdentifierType.IssuerAndSerialNumber, cert) {
             IncludeOption = IncludeCert ? X509IncludeOption.EndCertOnly : X509IncludeOption.None,
             SignedAttributes = { new Pkcs9SigningTime(DateTime.UtcNow) }
         };
 
-        if(Certificate.PublicKey.Oid.Value == "1.2.840.10040.4.1") // DSA
+        if(cert.PublicKey.Oid.Value == "1.2.840.10040.4.1") // DSA
             signer.DigestAlgorithm = new Oid("1.3.14.3.2.26"); // SHA1
         signedCms.ComputeSignature(signer);
 

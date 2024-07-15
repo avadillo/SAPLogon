@@ -29,7 +29,7 @@ public class WebGuiModel : PageModel {
     public async Task InitializeLists() {
         // Start both asynchronous operations
         Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
-            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }).ToList());
+            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Subject }).ToList());
 
         Task<List<SelectListItem>> usersTask = WebServices.WebGUIUsers
             .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
@@ -62,20 +62,13 @@ public class WebGuiModel : PageModel {
             return;
         }
 
-        // Start both tasks without awaiting them immediately to potentially run them in parallel
-        var typeAndPositionTask = UserCertificates.GetTypeAndPosition(Cert);
-        var certificateTask = UserCertificates.GetCertificate(Cert);
-
-        // Now await the tasks
-        var (sysId, sysClient) = await typeAndPositionTask;
-        var certificate = await certificateTask;
-
+        var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(Cert);
         LogonTicket ticket = new() {
             SysID = sysId,
             SysClient = sysClient,
             User = UserName,
             ValidTime = 10,
-            Certificate = certificate
+            Subject = Cert,
         };
 
         CookieOptions cookieOptions = new() {

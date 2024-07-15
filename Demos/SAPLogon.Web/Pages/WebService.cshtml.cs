@@ -5,11 +5,8 @@ using SAPLogon.Web.Common;
 using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
 using System.Data;
-using System.Diagnostics.Eventing.Reader;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Xml.Linq;
 
 namespace SAPLogon.Web.Pages;
 
@@ -44,7 +41,7 @@ public class WSModel : PageModel {
     public async Task InitializeLists() {
         // Start both asynchronous operations
         Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
-            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Thumbprint }).ToList());
+            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Subject }).ToList());
 
         Task<List<SelectListItem>> usersTask = WebServices.WebServiceUsers
             .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
@@ -86,21 +83,14 @@ public class WSModel : PageModel {
             return Page();
         }
 
-        // Start both tasks without awaiting them immediately to potentially run them in parallel
-        var typeAndPositionTask = UserCertificates.GetTypeAndPosition(Cert);
-        var certificateTask = UserCertificates.GetCertificate(Cert);
-
-        // Now await the tasks
-        var (sysId, sysClient) = await typeAndPositionTask;
-        var certificate = await certificateTask;
-
+        var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(Cert);
         AssertionTicket ticket = new() {
             SysID = sysId,
             SysClient = sysClient,
             User = UserName,
             RcptSysID = "NWA",
             RcptSysClient = "752",
-            Certificate = certificate
+            Subject = Cert,
         };
 
         if (_language != null) ticket.Language = _language.Value;

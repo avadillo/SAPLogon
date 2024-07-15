@@ -1,6 +1,6 @@
-﻿using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.X509Certificates;
 
-namespace SAPLogon.Web.Common;
+namespace SAPTools.LogonTicket;
 public static class UserCertificates {
     // Read the certificates from the CurrentUser\My store and sort them by algorithm
     // This is executed only once when the class is loaded
@@ -42,10 +42,10 @@ public static class UserCertificates {
         }
     }
 
-    public static async Task<(string, string)> GetTypeAndPosition(string thumbprint) {
+    public static async Task<(string, string)> GetTypeAndPosition(string subject) {
         // Get artificial values for SID and Client to send the ticket
         // This is just for building the certificate list for demo purposes
-        var cert = await GetCertificate(thumbprint);
+        var cert = await GetCertificateBySubject(subject);
         string alg = cert.PublicKey.Oid.Value switch {
             "1.2.840.10040.4.1" => "DSA",
             "1.2.840.113549.1.1.1" => "RSA",
@@ -57,7 +57,7 @@ public static class UserCertificates {
         var certificates = await Certificates;
         int index = certificates.Where(x => x.PublicKey.Oid.Value == cert.PublicKey.Oid.Value)
                                 .ToList()
-                                .FindIndex(x => x.Thumbprint == thumbprint);
+                                .FindIndex(x => x.Subject == subject);
 
         return (alg, $"{index:D3}");
     }

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.FileProviders;
-using SAPTools.LogonTicket;
+﻿using SAPTools.LogonTicket;
 using SAPTools.LogonTicket.Extensions;
 using System.Data;
 using System.Net;
@@ -12,7 +11,7 @@ public static class WebServices {
     /// <summary>
     /// Certificate subject to use for the MYSAPSSO2 token
     /// </summary>
-    public static string CertSubject { get; set; } = "OU=SAP Tools, CN=SAP SSO RSA 4096";
+    public static string CertSubject { get; set; } = "OU=SAP Tools, CN=SAP SSO ECDSA P-256";
     /// <summary>
     /// Language to use for the SAP system calls
     /// </summary>
@@ -109,7 +108,7 @@ public static class WebServices {
             // Add the SOAPAction header, which is required for SOAP requests.
             client.DefaultRequestHeaders.Add("SOAPAction", soapAction);
             // Add the MYSAPSSO2 header, likely for authentication purposes, obtained by calling GetMySAPSSO2 method.
-            client.DefaultRequestHeaders.Add("MYSAPSSO2", await GetMySAPSSO2());
+            client.DefaultRequestHeaders.Add("MYSAPSSO2", GetMySAPSSO2());
 
             // Create the HTTP content from the soapString, specifying the content type as text/xml.
             using(HttpContent content = new StringContent(soapString, Encoding.UTF8, "text/xml")) {
@@ -167,27 +166,23 @@ public static class WebServices {
                 dt.Rows.Add(dr);
             }
         }
-
         // Return the DataTable containing the extracted data.
         return dt;
     }
-
 
     /// <summary>
     /// Gets the signing certificate by subject and creates the MYSAPSSO2 token
     /// </summary>
     /// <returns>A Base64-encoded MYSAPSSO2 Token</returns>
-    public static async Task<string> GetMySAPSSO2() {
-        X509Certificate2 cert = await UserCertificates.GetCertificateBySubject(CertSubject);
-        var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(cert.Thumbprint);
+    public static string GetMySAPSSO2() {
         AssertionTicket ticket = new() {
             User = ConnectionUser,
-            SysID = sysId,
-            SysClient = sysClient,
+            SysID = "ECDSA",
+            SysClient = "000",
             RcptSysID = RcptSysId,
             RcptSysClient = RcptSysClient,
             Language = Language,
-            Certificate = cert
+            Subject = "OU=SAP Tools, CN=SAP SSO ECDSA P-256",
         };
         return ticket.Create(); // Await the Create method if it's asynchronous
     }

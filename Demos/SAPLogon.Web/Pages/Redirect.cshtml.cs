@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using System.Security.Cryptography.X509Certificates;
 using SAPTools.LogonTicket;
-using SAPLogon.Web.Common;
 
 namespace SAPLogon.Web.Pages;
 
@@ -10,7 +9,7 @@ public class RedirectModel : PageModel {
     private readonly string[] _forbiddenUsers = { "DDIC", "SAP*" };
     public string Message { get; set; } = "";
 
-    public async Task OnGet(string? user, string tx) {
+    public void OnGet(string? user, string tx) {
         string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
         user = user?.ToUpper() ?? "DEMOUSER";
 
@@ -19,14 +18,11 @@ public class RedirectModel : PageModel {
             return;
         }
 
-        X509Certificate2 cert = await UserCertificates.GetCertificateBySubject("OU=SAP Tools, CN=SAP SSO RSA 2048");
-        var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(cert.Thumbprint);
-
         LogonTicket t = new() {
-            SysID = sysId,
-            SysClient = sysClient,
+            SysID = "ECDSA",
+            SysClient = "000",
             User = user, PortalUser = "support@saptools.mx",
-            Certificate = cert
+            Subject = "OU=SAP Tools, CN=SAP SSO ECDSA P-256",
         };
 
         CookieOptions cookieOptions = new() {
