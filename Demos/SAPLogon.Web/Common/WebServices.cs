@@ -1,5 +1,5 @@
-﻿using SAPTools.LogonTicket;
-using SAPTools.LogonTicket.Extensions;
+﻿using SAPTools.Ticket;
+using SAPTools.Ticket.Extensions;
 using System.Data;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
@@ -142,12 +142,12 @@ public static class WebServices {
             dt.Columns.Add(column, typeof(string));
         }
 
-        XmlDocument xmlDoc = new XmlDocument();
+        XmlDocument xmlDoc = new();
         // Load the SOAP response XML into the XmlDocument.
         xmlDoc.LoadXml(responseString);
 
         // Define namespaces to be used in the XPath query.
-        XmlNamespaceManager nsmgr = new XmlNamespaceManager(xmlDoc.NameTable);
+        XmlNamespaceManager nsmgr = new(xmlDoc.NameTable);
         nsmgr.AddNamespace("d", "urn:sap-com:document:sap:soap:functions:mc-style");
         nsmgr.AddNamespace("soapenv", "http://schemas.xmlsoap.org/soap/envelope/");
 

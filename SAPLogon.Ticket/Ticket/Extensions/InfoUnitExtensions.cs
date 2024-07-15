@@ -1,7 +1,11 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography;
 using System.Text;
+using System.Runtime.CompilerServices;
 
-namespace SAPTools.LogonTicket.Extensions;
+namespace SAPTools.Ticket.Extensions;
 
 public enum InfoUnitID : byte {
     /// <summary>
@@ -104,20 +108,25 @@ public static class InfoUnitExtensions {
         StringASCII,
         DateString,
         DateStringUTF8,
+        LangString,
+        LangStringUTF8,
         UnsignedInt,
         Byte,
         ByteArray,
         Signature,
     }
 
+    public const string CreationDateFormat = "yyyyMMddHHmm";
+
     public static InfoUnitType GetInfoUnitType(this InfoUnitID id) =>
       id switch {
-          InfoUnitID.User or InfoUnitID.CreateClient or InfoUnitID.CreateSID or InfoUnitID.Language => InfoUnitType.String,
-          InfoUnitID.UTF8_User or InfoUnitID.UTF8_CreateClient or InfoUnitID.UTF8_CreateSID or
-          InfoUnitID.UTF8_Language => InfoUnitType.StringUTF8,
+          InfoUnitID.User or InfoUnitID.CreateClient or InfoUnitID.CreateSID => InfoUnitType.String,
+          InfoUnitID.UTF8_User or InfoUnitID.UTF8_CreateClient or InfoUnitID.UTF8_CreateSID => InfoUnitType.StringUTF8,
+          InfoUnitID.Language => InfoUnitType.LangString,
+          InfoUnitID.UTF8_Language => InfoUnitType.LangStringUTF8,
           InfoUnitID.CreateTime => InfoUnitType.DateString,
           InfoUnitID.UTF8_CreateTime => InfoUnitType.DateStringUTF8,
-          InfoUnitID.RecipientClient or InfoUnitID.RecipientSID or InfoUnitID.PortalUser or InfoUnitID.AuthScheme or 
+          InfoUnitID.RecipientClient or InfoUnitID.RecipientSID or InfoUnitID.PortalUser or InfoUnitID.AuthScheme or
           InfoUnitID.RFC => InfoUnitType.StringASCII,
           InfoUnitID.ValidTimeInH or InfoUnitID.ValidTimeInM => InfoUnitType.UnsignedInt,
           InfoUnitID.Flags => InfoUnitType.Byte,
@@ -125,6 +134,8 @@ public static class InfoUnitExtensions {
           InfoUnitID.Signature => InfoUnitType.Signature,
           _ => throw new InvalidOperationException("Unknown InfoUnitID")
       };
+
+    public static InfoUnitType GetInfoUnitType(this InfoUnit iu) => GetInfoUnitType(iu.ID);
 
     public static InfoUnitID FromByte(byte value) =>
         Enum.IsDefined(typeof(InfoUnitID), value) ? (InfoUnitID)value
@@ -134,29 +145,56 @@ public static class InfoUnitExtensions {
         Enum.TryParse(value, out InfoUnitID result) ? result
             : throw new ArgumentOutOfRangeException(nameof(value), $"Value {value} is not defined in InfoUnitID enum.");
 
-    public static Encoding DetermineEncoding(InfoUnitID id, Encoding enc) =>
+    public static Encoding DetermineEncoding(this InfoUnitID id, Encoding enc) => id.GetInfoUnitType() switch {
+        InfoUnitType.String or InfoUnitType.DateString or InfoUnitType.LangString => enc,
+        InfoUnitType.StringUTF8 or InfoUnitType.DateStringUTF8 or InfoUnitType.LangStringUTF8 => Encoding.UTF8,
+        InfoUnitType.StringASCII => Encoding.ASCII,
+        _ => throw new InvalidOperationException($"InfoUnit {id} is not a string unit.")
+    };
+
+    public static Encoding DetermineEncoding(this InfoUnit iu, Encoding enc) => DetermineEncoding(iu.ID, enc);
+
+    public static Encoding DetermineEncoding(this InfoUnitID id) =>
         id.GetInfoUnitType() switch {
-            InfoUnitType.String or InfoUnitType.DateString => enc,
-            InfoUnitType.StringUTF8 or InfoUnitType.DateStringUTF8 => Encoding.UTF8,
             InfoUnitType.StringASCII => Encoding.ASCII,
+            InfoUnitType.StringUTF8 or InfoUnitType.DateStringUTF8 or InfoUnitType.LangStringUTF8 => Encoding.UTF8,
+            InfoUnitType.String or InfoUnitType.DateString or InfoUnitType.LangString => throw new InvalidOperationException($"InfoUnit {id} needs an encoding"),
             _ => throw new InvalidOperationException($"InfoUnit {id} is not a string unit.")
         };
 
-    public static Encoding DetermineEncoding(InfoUnitID id) =>
-        id.GetInfoUnitType() switch {
-            InfoUnitType.StringASCII => Encoding.ASCII,
-            InfoUnitType.StringUTF8 or InfoUnitType.DateStringUTF8 => Encoding.UTF8,
-            InfoUnitType.String or InfoUnitType.DateString => throw new InvalidOperationException($"InfoUnit {id} needs an encoding"),
-            _ => throw new InvalidOperationException($"InfoUnit {id} is not a string unit.")
-        };
+    public static Encoding DetermineEncoding(this InfoUnit iu) => DetermineEncoding(iu.ID);
 
+    public static string ToString(this InfoUnit iu, Encoding enc) => iu.DetermineEncoding(enc).GetString(iu.Content);
+
+    public static object? GetValue(this InfoUnit iu, Encoding enc) => iu.GetInfoUnitType() switch {
+        InfoUnitType.String => iu.ToString(enc),
+        InfoUnitType.StringUTF8 => Encoding.UTF8.GetString(iu.Content),
+        InfoUnitType.StringASCII => Encoding.ASCII.GetString(iu.Content),
+        InfoUnitType.DateString or InfoUnitType.DateStringUTF8 => DateTime.ParseExact(iu.ToString(enc), CreationDateFormat, null),
+        InfoUnitType.LangString or InfoUnitType.LangStringUTF8 => SAPLanguageExtensions.FromCode(iu.ToString(enc)),
+        InfoUnitType.Byte => iu.Content[0],
+        InfoUnitType.UnsignedInt => BitConverter.IsLittleEndian ? BitConverter.ToUInt32(iu.Content.Reverse().ToArray(), 0) : BitConverter.ToUInt32(iu.Content, 0),
+        InfoUnitType.ByteArray => iu.Content,
+        InfoUnitType.Signature => iu.DecodeSignedCms(),
+        _ => throw new InvalidOperationException("Unknown InfoUnitType"),
+    };
+
+    private static SignedCms? DecodeSignedCms(this InfoUnit iu) {
+        SignedCms cms = new();
+        try {
+            cms.Decode(iu.Content);
+        } catch(CryptographicException) {
+            return null;
+        }
+        return cms;
+    }
     public static List<InfoUnit> ParseInfoUnits(Span<byte> ticket) {
         List<InfoUnit> infoUnits = [];
         int offset = 0;
         while(offset < ticket.Length) {
             InfoUnitID id = FromByte(ticket[offset++]);
             ushort length = (ushort)((ticket[offset++] << 8) | ticket[offset++]);
-            byte[] content = ticket.Slice(offset, length).ToArray();
+            byte[] content = ticket.Slice(offset, Math.Min(length, ticket.Length - offset)).ToArray();
             offset += length;
             infoUnits.Add(new InfoUnit(id, content));
         }

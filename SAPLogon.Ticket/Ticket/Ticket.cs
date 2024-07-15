@@ -1,13 +1,12 @@
-﻿using Microsoft.VisualBasic;
-using SAPTools.LogonTicket.Extensions;
+﻿using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
-using static SAPTools.LogonTicket.Extensions.InfoUnitExtensions;
+using SAPTools.Ticket.Extensions;
 
-namespace SAPTools.LogonTicket;
+namespace SAPTools.Ticket;
 
 public abstract class Ticket {
     /// <summary>
@@ -27,11 +26,11 @@ public abstract class Ticket {
     /// <summary>
     /// The subject of the certificate used to sign the ticket.
     /// </summary>
-    public required string Subject { get; set; } 
+    public required string Subject { get; set; }
     /// <summary>
     /// Validity time of the ticket in minutes.
     /// </summary>
-    public virtual uint ValidTime { get; set; } 
+    public virtual uint ValidTime { get; set; }
     /// <summary>
     /// Include the certificate in the ticket.
     /// Not included by default.
@@ -39,11 +38,11 @@ public abstract class Ticket {
     public bool IncludeCert { get; set; } = false;
     public bool IsRFC { get; set; } = false;
 
-    private readonly SAPCodepage Codepage = SAPCodepage.UnicodeLittleUnmarked;
-
-    protected List<InfoUnit> InfoUnits { get; set; } = [];
-    private byte[] TicketContent { get; set; } = [];
+    public SAPCodepage Codepage { get; set; } = SAPCodepage.UnicodeLittleUnmarked;
     protected Encoding InternalEncoding = Encoding.ASCII;
+    protected List<InfoUnit> InfoUnits { get; set; } = [];
+
+    private byte[] TicketContent { get; set; } = [];
 
     public string ToBase64 => SAPTools.Utils.Base64.Encode(TicketContent);
     public byte[] ToBytes => TicketContent;
@@ -54,15 +53,15 @@ public abstract class Ticket {
     /// </summary>
     /// <returns></returns>
     public string Create() {
-        InternalEncoding = SAPCodepageExtensions.GetEncoding(Codepage);
+        InternalEncoding = Codepage.GetEncoding();
         using MemoryStream payload = new(512);
         payload.WriteByte(2); // Tickets always start with a (byte)0x02
-        payload.Write(Encoding.ASCII.GetBytes(SAPCodepageExtensions.ToCode(Codepage)));
+        payload.Write(Encoding.ASCII.GetBytes(Codepage.ToCode()));
 
         EncodeInfoUnits();
-        foreach(var iu in InfoUnits) iu.WriteTo(payload);
+        foreach(InfoUnit iu in InfoUnits) iu.WriteTo(payload);
 
-        var signature = GetSignature(payload.ToArray());
+        SignedCms signature = GetSignature(payload.ToArray());
         InfoUnit iuSignature = new(InfoUnitID.Signature, signature);
         iuSignature.WriteTo(payload);
         TicketContent = payload.ToArray();
@@ -104,8 +103,16 @@ public abstract class Ticket {
         if(IsRFC) InfoUnits.Add(new(InfoUnitID.RFC, "X"));
     }
 
+    public byte[] GetEncodedUnits() {
+        using MemoryStream payload = new(512);
+        foreach(InfoUnit iu in InfoUnits.Where(iu => iu.ID != InfoUnitID.Signature)) {
+            iu.WriteTo(payload);
+        }
+        return payload.ToArray();
+    }
+
     public static Ticket ParseTicket(string base64Ticket) {
-        byte[] ticket = SAPTools.Utils.Base64.Decode(base64Ticket);
+        byte[] ticket = SAPTools.Utils.Base64.Decode(WebUtility.UrlDecode(WebUtility.HtmlDecode(base64Ticket)));
         return ParseTicket(ticket);
     }
 
@@ -115,31 +122,32 @@ public abstract class Ticket {
         }
 
         SAPCodepage codepage = SAPCodepageExtensions.FromCode(ticket.AsSpan(1, 4));
-        Encoding encoding = SAPCodepageExtensions.GetEncoding(codepage);
+        Encoding encoding = codepage.GetEncoding();
 
         List<InfoUnit> infoUnits = InfoUnitExtensions.ParseInfoUnits(ticket.AsSpan(5, ticket.Length - 5));
-        if(GetValue(infoUnits, InfoUnitID.Signature, encoding) is not SignedCms cms) 
-            throw new ArgumentException("Ticket is not signed.");
-
-        string subject = cms.SignerInfos.Count > 0 ? ((X509IssuerSerial)cms.SignerInfos[0].SignerIdentifier.Value!).IssuerName : "";
+        string subject = "";
+        if(GetValue(infoUnits, InfoUnitID.Signature, encoding) is SignedCms cms)
+            subject = cms.SignerInfos.Count > 0 ? ((X509IssuerSerial)cms.SignerInfos[0].SignerIdentifier.Value!).IssuerName : "";
 
         return GetValue(infoUnits, InfoUnitID.Flags, encoding) is byte flags && flags == 1
-            ? CreateAssertionTicket(infoUnits, encoding, subject)
-            : CreateLogonTicket(infoUnits, encoding, subject);
+            ? CreateAssertionTicket(infoUnits, codepage, encoding, subject)
+            : CreateLogonTicket(infoUnits, codepage, encoding, subject);
     }
 
-    private static AssertionTicket CreateAssertionTicket(List<InfoUnit> infoUnits, Encoding encoding, string subject) => new () {
-        User = "", RcptSysClient = "", RcptSysID = "", SysClient = "", SysID = "", 
+    private static AssertionTicket CreateAssertionTicket(List<InfoUnit> infoUnits, SAPCodepage codepage, Encoding enc, string subject) => new() {
+        User = "", RcptSysClient = "", RcptSysID = "", SysClient = "", SysID = "",
         Subject = subject,
         InfoUnits = infoUnits,
-        InternalEncoding = encoding,
+        Codepage = codepage,
+        InternalEncoding = enc,
     };
 
-    private static LogonTicket CreateLogonTicket(List<InfoUnit> infoUnits, Encoding encoding, string subject) => new () {
+    private static LogonTicket CreateLogonTicket(List<InfoUnit> infoUnits, SAPCodepage codepage, Encoding enc, string subject) => new() {
         User = "", SysClient = "", SysID = "",
         Subject = subject,
         InfoUnits = infoUnits,
-        InternalEncoding = encoding,
+        Codepage = codepage,
+        InternalEncoding = enc,
     };
 
     public static object? GetValue(List<InfoUnit> infoUnits, InfoUnitID id, Encoding enc) =>

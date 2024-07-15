@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAPLogon.Web.Common;
-using SAPTools.LogonTicket;
-using SAPTools.LogonTicket.Extensions;
+using SAPTools.Ticket;
+using SAPTools.Ticket.Extensions;
 using System.Data;
 using System.Net;
 using System.Text;

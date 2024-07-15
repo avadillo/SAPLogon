@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using System.Security.Cryptography.X509Certificates;
-using SAPTools.LogonTicket;
+using SAPTools.Ticket;
 
 namespace SAPLogon.Web.Pages;
 

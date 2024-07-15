@@ -1,6 +1,6 @@
-﻿using SAPTools.LogonTicket.Extensions;
+﻿using SAPTools.Ticket.Extensions;
 
-namespace SAPTools.LogonTicket;
+namespace SAPTools.Ticket;
 
 public class AssertionTicket : Ticket {
     /// <summary>

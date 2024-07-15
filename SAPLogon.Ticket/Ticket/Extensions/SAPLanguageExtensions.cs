@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
+using System.Reflection;
 
-namespace SAPTools.LogonTicket.Extensions;
+namespace SAPTools.Ticket.Extensions;
 
 public enum SAPLanguage {
     /// <summary>
@@ -191,16 +192,16 @@ public static class SAPLanguageExtensions {
 
     static SAPLanguageExtensions() {
         langCodeToEnumMap = new Dictionary<string, SAPLanguage>(StringComparer.OrdinalIgnoreCase);
-        foreach(SAPLanguage language in Enum.GetValues(typeof(SAPLanguage))) {
+        foreach(SAPLanguage language in Enum.GetValues<SAPLanguage>()) {
             char langChar = (char)language;
             if(langChar != 0) // Exclude the 'None' value with char code 0
                 langCodeToEnumMap[langChar.ToString()] = language;
         }
     }
 
-    public static string GetDescription(this SAPLanguage lang) {
-        var type = lang.GetType();
-        var memInfo = type.GetMember(lang.ToString());
+    public static string? GetDescription(this SAPLanguage lang) {
+        Type type = lang.GetType();
+        MemberInfo[] memInfo = type.GetMember(lang.ToString());
 
         if(memInfo.Length > 0) {
             object[] attrs = memInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
@@ -210,22 +211,16 @@ public static class SAPLanguageExtensions {
         return "No description";
     }
 
-    public static SAPLanguage FromString(string lang) {
+    public static string? GetDescription(this string? langCode) => String.IsNullOrEmpty(langCode)
+            ? null
+            : !langCodeToEnumMap.TryGetValue(langCode, out SAPLanguage language) ? "No description" : GetDescription(language);
+
+    public static SAPLanguage FromCode(string lang) {
         lang = lang.Replace("\0", String.Empty);
         if(String.IsNullOrEmpty(lang)) return SAPLanguage.None;
 
         if(langCodeToEnumMap.TryGetValue(lang, out var language))
             return language;
-
-        // Handle special cases or log unknown language
-        return SAPLanguage.None;
-    }
-
-    public static SAPLanguage FromDescription(string description) {
-        foreach(SAPLanguage language in Enum.GetValues(typeof(SAPLanguage))) {
-            if(description.Equals(language.GetDescription(), StringComparison.OrdinalIgnoreCase))
-                return language;
-        }
 
         // Handle special cases or log unknown language
         return SAPLanguage.None;

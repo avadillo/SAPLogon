@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text;
 
-namespace SAPTools.LogonTicket.Extensions;
+namespace SAPTools.Ticket.Extensions;
 
 /// <summary>
 /// Defines the SAP code pages
@@ -202,11 +202,11 @@ public static class SAPCodepageExtensions {
             (SAPCodepage)number : SAPCodepage.Unknown;
     }
 
-    public static SAPCodepage FromCode(Span<byte> code) =>  FromCode(Encoding.ASCII.GetString(code));
+    public static SAPCodepage FromCode(Span<byte> code) => FromCode(Encoding.ASCII.GetString(code));
 
-    public static string ToCode(SAPCodepage codepage) => codepage.GetHashCode().ToString();
+    public static string ToCode(this SAPCodepage codepage) => codepage.GetHashCode().ToString();
 
-    public static Encoding GetEncoding(SAPCodepage codepage) =>
+    public static Encoding GetEncoding(this SAPCodepage codepage) =>
         codepage switch {
             SAPCodepage.UnicodeLittleUnmarked => Encoding.Unicode,
             SAPCodepage.UnicodeBigUnmarked => Encoding.BigEndianUnicode,

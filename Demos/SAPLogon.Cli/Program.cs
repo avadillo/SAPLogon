@@ -1,5 +1,5 @@
-﻿using SAPTools.LogonTicket;
-using SAPTools.LogonTicket.Extensions;
+﻿using SAPTools.Ticket;
+using SAPTools.Ticket.Extensions;
 using SAPLogon.Web.Common;
 using System.Diagnostics;
 
@@ -52,7 +52,7 @@ Stopwatch sw = new();
 sw.Start();
 Console.WriteLine("\nLanguages with description in English");
 WebServices.ResetInstalledLanguages();
-WebServices.Language = SAPTools.LogonTicket.Extensions.SAPLanguage.EN;
+WebServices.Language = SAPLanguage.EN;
 foreach(var a in WebServices.InstalledLanguages.Result)
     Console.WriteLine($"{a.SAPCode} - {a.ISOCode} - {a.Name}");
 sw.Stop();
@@ -61,7 +61,7 @@ Console.WriteLine($"Elapsed time: {sw.ElapsedMilliseconds} ms");
 sw.Restart();
 Console.WriteLine("\nLanguages with description in German");
 WebServices.ResetInstalledLanguages();
-WebServices.Language = SAPTools.LogonTicket.Extensions.SAPLanguage.DE;
+WebServices.Language = SAPLanguage.DE;
 foreach(var a in WebServices.InstalledLanguages.Result)
     Console.WriteLine($"{a.SAPCode} - {a.ISOCode} - {a.Name}");
 sw.Stop();
@@ -70,7 +70,7 @@ Console.WriteLine($"Elapsed time: {sw.ElapsedMilliseconds} ms");
 sw.Restart();
 Console.WriteLine("\nLanguages with description in Spanish");
 WebServices.ResetInstalledLanguages();
-WebServices.Language = SAPTools.LogonTicket.Extensions.SAPLanguage.ES;
+WebServices.Language = SAPLanguage.ES;
 foreach(var a in WebServices.InstalledLanguages.Result)
     Console.WriteLine($"{a.SAPCode} - {a.ISOCode} - {a.Name}");
 sw.Stop();
