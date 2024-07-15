@@ -98,28 +98,30 @@ public enum InfoUnitFlags : byte {
 }
 
 public static class InfoUnitExtensions {
-    public const string ValidDateFormat = "yyyyMMddHHmm";
-    private enum InfoUnitType : byte {
+    public enum InfoUnitType : byte {
         String,
         StringUTF8,
         StringASCII,
+        DateString,
+        DateStringUTF8,
         UnsignedInt,
         Byte,
         ByteArray,
+        Signature,
     }
 
-    private static InfoUnitType GetInfoUnitType(this InfoUnitID id) =>
+    public static InfoUnitType GetInfoUnitType(this InfoUnitID id) =>
       id switch {
           InfoUnitID.User or
           InfoUnitID.CreateClient or
           InfoUnitID.CreateSID or
-          InfoUnitID.CreateTime or
           InfoUnitID.Language => InfoUnitType.String,
+          InfoUnitID.CreateTime => InfoUnitType.DateString,
           InfoUnitID.UTF8_User or
           InfoUnitID.UTF8_CreateClient or
           InfoUnitID.UTF8_CreateSID or
-          InfoUnitID.UTF8_CreateTime or
           InfoUnitID.UTF8_Language => InfoUnitType.StringUTF8,
+          InfoUnitID.UTF8_CreateTime => InfoUnitType.DateStringUTF8,
           InfoUnitID.RecipientClient or
           InfoUnitID.RecipientSID or
           InfoUnitID.PortalUser or
@@ -128,8 +130,8 @@ public static class InfoUnitExtensions {
           InfoUnitID.ValidTimeInH or
           InfoUnitID.ValidTimeInM => InfoUnitType.UnsignedInt,
           InfoUnitID.Flags => InfoUnitType.Byte,
-          InfoUnitID.FourByteID or
-          InfoUnitID.Signature => InfoUnitType.ByteArray,
+          InfoUnitID.FourByteID => InfoUnitType.ByteArray,
+          InfoUnitID.Signature => InfoUnitType.Signature,
           _ => throw new InvalidOperationException("Unknown InfoUnitID")
       };
 
@@ -143,8 +145,8 @@ public static class InfoUnitExtensions {
 
     public static Encoding DetermineEncoding(InfoUnitID id, Encoding enc) =>
         id.GetInfoUnitType() switch {
-            InfoUnitType.String => enc,
-            InfoUnitType.StringUTF8 => Encoding.UTF8,
+            InfoUnitType.String or InfoUnitType.DateString => enc,
+            InfoUnitType.StringUTF8 or InfoUnitType.DateStringUTF8 => Encoding.UTF8,
             InfoUnitType.StringASCII => Encoding.ASCII,
             _ => throw new InvalidOperationException($"InfoUnit {id} is not a string unit.")
         };
@@ -152,8 +154,22 @@ public static class InfoUnitExtensions {
     public static Encoding DetermineEncoding(InfoUnitID id) =>
         id.GetInfoUnitType() switch {
             InfoUnitType.StringASCII => Encoding.ASCII,
-            InfoUnitType.StringUTF8 => Encoding.UTF8,
-            InfoUnitType.String => throw new InvalidOperationException($"InfoUnit {id} needs an encoding"),
+            InfoUnitType.StringUTF8 or InfoUnitType.DateStringUTF8 => Encoding.UTF8,
+            InfoUnitType.String or InfoUnitType.DateString => throw new InvalidOperationException($"InfoUnit {id} needs an encoding"),
             _ => throw new InvalidOperationException($"InfoUnit {id} is not a string unit.")
         };
+
+    public static List<InfoUnit> ParseInfoUnits(Span<byte> ticket) {
+        var infoUnits = new List<InfoUnit>();
+        int offset = 0;
+        while(offset < ticket.Length) {
+            InfoUnitID id = FromByte(ticket[offset++]);
+            ushort length = (ushort)((ticket[offset++] << 8) | ticket[offset++]);
+            byte[] content = ticket.Slice(offset, length).ToArray();
+            offset += length;
+            infoUnits.Add(new InfoUnit(id, content));
+        }
+        return infoUnits;
+    }
+
 }

@@ -3,6 +3,7 @@ using SAPTools.LogonTicket.Extensions;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using static SAPTools.LogonTicket.Extensions.InfoUnitExtensions;
 
@@ -103,49 +104,47 @@ public abstract class Ticket {
         if(IsRFC) InfoUnits.Add(new(InfoUnitID.RFC, "X"));
     }
 
-    protected class InfoUnit {
-        public InfoUnitID ID { get; set; }
-        public byte[] Content { get; set; }
-
-        public InfoUnit(InfoUnitID id, byte[] data) =>
-            (ID, Content) = (id, data);
-
-        public InfoUnit(InfoUnitID id, byte data) =>
-            (ID, Content) = (id, [data]);
-
-        public InfoUnit(InfoUnitID id, string data) =>
-            (ID, Content) = (id, DetermineEncoding(id).GetBytes(data));
-
-        public InfoUnit(InfoUnitID id, string data, Encoding enc) =>
-            (ID, Content) = (id, DetermineEncoding(id, enc).GetBytes(data));
-
-        public InfoUnit(InfoUnitID id, SAPLanguage data, Encoding enc) =>
-            (ID, Content) = (id, enc.GetBytes(SAPLanguageExtensions.ToCode(data)));
-
-        public InfoUnit(InfoUnitID id, DateTime data, Encoding enc) =>
-            (ID, Content) = (id, enc.GetBytes(data.ToString(ValidDateFormat)));
-
-        public InfoUnit(InfoUnitID id, SignedCms data) =>
-            (ID, Content) = (id, data.Encode());
-
-        public InfoUnit(InfoUnitID id, uint data) =>
-            (ID, Content) = (id, new byte[] {
-            (byte)(data >> 24), (byte)(data >> 16),
-            (byte)(data >> 8), (byte)data });
-
-        public virtual void WriteTo(Stream @out) {
-            // Ensure the content length does not exceed ushort.MaxValue - 3
-            if(Content!.Length > UInt16.MaxValue - 3) throw new InvalidOperationException("Content is too large.");
-
-            ushort totalLength = (ushort)(3 + Content.Length); // Total length calculation
-            byte[] buffer = new byte[totalLength];
-
-            buffer[0] = (byte)ID!; // ID
-            buffer[1] = (byte)(Content.Length >> 8); // High byte of content length
-            buffer[2] = (byte)Content.Length; // Low byte of content length
-            Array.Copy(Content, 0, buffer, 3, Content.Length); // Content
-
-            @out.Write(buffer, 0, buffer.Length); // Write buffer to stream
-        }
+    public static Ticket ParseTicket(string base64Ticket) {
+        byte[] ticket = SAPTools.Utils.Base64.Decode(base64Ticket);
+        return ParseTicket(ticket);
     }
+
+    public static Ticket ParseTicket(byte[] ticket) {
+        if(ticket[0] != 2) {
+            throw new ArgumentException("Invalid ticket format.");
+        }
+
+        SAPCodepage codepage = SAPCodepageExtensions.FromCode(ticket.AsSpan(1, 4));
+        Encoding encoding = SAPCodepageExtensions.GetEncoding(codepage);
+
+        List<InfoUnit> infoUnits = InfoUnitExtensions.ParseInfoUnits(ticket.AsSpan(5, ticket.Length - 5));
+        if(GetValue(infoUnits, InfoUnitID.Signature, encoding) is not SignedCms cms) 
+            throw new ArgumentException("Ticket is not signed.");
+
+        string subject = cms.SignerInfos.Count > 0 ? ((X509IssuerSerial)cms.SignerInfos[0].SignerIdentifier.Value!).IssuerName : "";
+
+        return GetValue(infoUnits, InfoUnitID.Flags, encoding) is byte flags && flags == 1
+            ? CreateAssertionTicket(infoUnits, encoding, subject)
+            : CreateLogonTicket(infoUnits, encoding, subject);
+    }
+
+    private static AssertionTicket CreateAssertionTicket(List<InfoUnit> infoUnits, Encoding encoding, string subject) => new () {
+        User = "", RcptSysClient = "", RcptSysID = "", SysClient = "", SysID = "", 
+        Subject = subject,
+        InfoUnits = infoUnits,
+        InternalEncoding = encoding,
+    };
+
+    private static LogonTicket CreateLogonTicket(List<InfoUnit> infoUnits, Encoding encoding, string subject) => new () {
+        User = "", SysClient = "", SysID = "",
+        Subject = subject,
+        InfoUnits = infoUnits,
+        InternalEncoding = encoding,
+    };
+
+
+    public static object? GetValue(List<InfoUnit> infoUnits, InfoUnitID id, Encoding enc) =>
+    infoUnits.FirstOrDefault(i => i.ID == id) is InfoUnit iu ? iu.GetValue(enc) : null;
+
+    public object? GetValue(InfoUnitID id) => GetValue(InfoUnits, id, InternalEncoding);
 }

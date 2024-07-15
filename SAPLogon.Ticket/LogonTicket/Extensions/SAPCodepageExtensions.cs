@@ -197,13 +197,14 @@ public static class SAPCodepageExtensions {
     }
 
     public static SAPCodepage FromCode(string code) {
-        int number = Int32.TryParse(code, out number) ? number : 0;
+        ushort number = (ushort)(UInt16.TryParse(code, out number) ? number : 0);
         return Enum.IsDefined(typeof(SAPCodepage), number) ?
             (SAPCodepage)number : SAPCodepage.Unknown;
     }
 
-    public static string ToCode(SAPCodepage codepage) =>
-        codepage.GetHashCode().ToString();
+    public static SAPCodepage FromCode(Span<byte> code) =>  FromCode(Encoding.ASCII.GetString(code));
+
+    public static string ToCode(SAPCodepage codepage) => codepage.GetHashCode().ToString();
 
     public static Encoding GetEncoding(SAPCodepage codepage) =>
         codepage switch {

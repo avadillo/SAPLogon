@@ -1,7 +1,39 @@
-﻿using SAPLogon.Web.Common;
+﻿using SAPTools.LogonTicket;
+using SAPTools.LogonTicket.Extensions;
+using SAPLogon.Web.Common;
 using System.Diagnostics;
 
-string subject = "OU=SAP Tools, CN=SAP SSO RSA 4096";
+string subject = "OU=SAP Tools, CN=SAP SSO ECDSA P-256";
+AssertionTicket t = new() {
+    User = "DEMO",
+    SysID = "ECDSA",
+    SysClient = "000",
+    Subject = subject,
+    RcptSysID = "NWA",
+    RcptSysClient = "752",
+};
+string ticket = t.Create();
+Console.WriteLine($@"Assertion Ticket for ""{t.User}"" issued by ""{t.SysID}""");
+Console.WriteLine(ticket);
+Console.WriteLine();
+Ticket t1 = Ticket.ParseTicket(ticket);
+Console.WriteLine("Ticket parsed:");
+Console.WriteLine($@"User: {t1.GetValue(InfoUnitID.User)}");
+Console.WriteLine($@"Issuing System ID: {t1.GetValue(InfoUnitID.CreateSID)}");
+Console.WriteLine($@"Issuing System Client: {t1.GetValue(InfoUnitID.CreateClient)}");
+Console.WriteLine($@"Creation Time: {t1.GetValue(InfoUnitID.CreateTime)}");
+Console.WriteLine($@"Valid Time (H): {t1.GetValue(InfoUnitID.ValidTimeInH)}");
+Console.WriteLine($@"Valid Time (M): {t1.GetValue(InfoUnitID.ValidTimeInM)}");
+Console.WriteLine($@"Is RFC: {t1.GetValue(InfoUnitID.RFC)}");
+Console.WriteLine($@"Flags: {t1.GetValue(InfoUnitID.Flags)}");
+Console.WriteLine($@"Language: {t1.GetValue(InfoUnitID.Language)}");
+Console.WriteLine($@"User (UTF8): {t1.GetValue(InfoUnitID.UTF8_User)}");
+Console.WriteLine($@"Issuing System ID (UTF8): {t1.GetValue(InfoUnitID.UTF8_CreateSID)}");
+Console.WriteLine($@"Issuing System Client (UTF8): {t1.GetValue(InfoUnitID.UTF8_CreateClient)}");
+Console.WriteLine($@"Creation Time (UTF8): {t1.GetValue(InfoUnitID.UTF8_CreateTime)}");
+Console.WriteLine($@"Language (UTF8): {t1.GetValue(InfoUnitID.Language)}");
+Console.WriteLine();
+
 Console.WriteLine($@"Getting certificate by subject  ""{subject}""");
 var cert = UserCertificates.GetCertificateBySubject(subject).Result;
 if(cert == null) {
