@@ -81,7 +81,7 @@ public class WebGuiModel : PageModel {
         CookieOptions cookieOptions = new() {
             Path = "/",
             Secure = true,
-            Domain = $".{domain}",
+            Domain = $".saptools.mx",
             SameSite = SameSiteMode.Lax
         };
 
@@ -93,11 +93,15 @@ public class WebGuiModel : PageModel {
         // Once the cookie is set, redirect to the SAP system:
         string url = $"https://demo.saptools.mx/sap/bc/gui/sap/its/webgui?sap-language={_language?.ToString() ?? "EN"}";
         Response.Redirect(url);
-
     }
 
     private void DeleteCookie(string cookieName) {
         try { Response.Cookies.Delete(cookieName); } catch { /* Log or handle the error if necessary */ }
+    }
+
+    private static string GetDomainFromHost(string hostValue) {
+        string[] values = hostValue.Split('.');
+        return values.Length >= 2 ? $"{values[^2]}.{values[^1]}" : "saptools.mx";
     }
 }
 
