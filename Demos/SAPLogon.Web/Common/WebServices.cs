@@ -53,7 +53,7 @@ public static class WebServices {
     public static void ResetWebGUIUsers() => _webGUIUsers = new(() => GetUsersByGroup("WEBGUI"));
     public static void ResetWebServiceUsers() => _webServiceUsers = new(() => GetUsersByGroup("WEBSERVICE"));
 
-    private const string Url = "https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services";
+    private const string Url = "https://demos.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services";
     private const string ConnectionUser = "WSUSER";
     private const string RcptSysId = "NWA";
     private const string RcptSysClient = "752";

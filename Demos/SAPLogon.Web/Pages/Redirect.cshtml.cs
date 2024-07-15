@@ -38,7 +38,7 @@ public class RedirectModel : PageModel {
 
         Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
 
-        string url = $"https://demo.{domain}/sap/bc/gui/sap/its/webgui";
+        string url = $"https://demos.{domain}/sap/bc/gui/sap/its/webgui";
         if(!String.IsNullOrEmpty(tx)) url += $"?~transaction={tx}";
 
         Response.Redirect(url);

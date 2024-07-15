@@ -84,7 +84,7 @@ public class WebGuiModel : PageModel {
         Response.Cookies.Append("MYSAPSSO2", ticket.Create(), cookieOptions);
 
         // Once the cookie is set, redirect to the SAP system:
-        string url = $"https://demo.saptools.mx/sap/bc/gui/sap/its/webgui?sap-language={_language?.ToString() ?? "EN"}";
+        string url = $"https://demos.saptools.mx/sap/bc/gui/sap/its/webgui?sap-language={_language?.ToString() ?? "EN"}";
         Response.Redirect(url);
     }
 
