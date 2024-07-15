@@ -142,7 +142,6 @@ public abstract class Ticket {
         InternalEncoding = encoding,
     };
 
-
     public static object? GetValue(List<InfoUnit> infoUnits, InfoUnitID id, Encoding enc) =>
     infoUnits.FirstOrDefault(i => i.ID == id) is InfoUnit iu ? iu.GetValue(enc) : null;
 

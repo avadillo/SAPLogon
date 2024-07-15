@@ -112,23 +112,14 @@ public static class InfoUnitExtensions {
 
     public static InfoUnitType GetInfoUnitType(this InfoUnitID id) =>
       id switch {
-          InfoUnitID.User or
-          InfoUnitID.CreateClient or
-          InfoUnitID.CreateSID or
-          InfoUnitID.Language => InfoUnitType.String,
-          InfoUnitID.CreateTime => InfoUnitType.DateString,
-          InfoUnitID.UTF8_User or
-          InfoUnitID.UTF8_CreateClient or
-          InfoUnitID.UTF8_CreateSID or
+          InfoUnitID.User or InfoUnitID.CreateClient or InfoUnitID.CreateSID or InfoUnitID.Language => InfoUnitType.String,
+          InfoUnitID.UTF8_User or InfoUnitID.UTF8_CreateClient or InfoUnitID.UTF8_CreateSID or
           InfoUnitID.UTF8_Language => InfoUnitType.StringUTF8,
+          InfoUnitID.CreateTime => InfoUnitType.DateString,
           InfoUnitID.UTF8_CreateTime => InfoUnitType.DateStringUTF8,
-          InfoUnitID.RecipientClient or
-          InfoUnitID.RecipientSID or
-          InfoUnitID.PortalUser or
-          InfoUnitID.AuthScheme or
+          InfoUnitID.RecipientClient or InfoUnitID.RecipientSID or InfoUnitID.PortalUser or InfoUnitID.AuthScheme or 
           InfoUnitID.RFC => InfoUnitType.StringASCII,
-          InfoUnitID.ValidTimeInH or
-          InfoUnitID.ValidTimeInM => InfoUnitType.UnsignedInt,
+          InfoUnitID.ValidTimeInH or InfoUnitID.ValidTimeInM => InfoUnitType.UnsignedInt,
           InfoUnitID.Flags => InfoUnitType.Byte,
           InfoUnitID.FourByteID => InfoUnitType.ByteArray,
           InfoUnitID.Signature => InfoUnitType.Signature,
@@ -160,7 +151,7 @@ public static class InfoUnitExtensions {
         };
 
     public static List<InfoUnit> ParseInfoUnits(Span<byte> ticket) {
-        var infoUnits = new List<InfoUnit>();
+        List<InfoUnit> infoUnits = [];
         int offset = 0;
         while(offset < ticket.Length) {
             InfoUnitID id = FromByte(ticket[offset++]);
@@ -171,5 +162,4 @@ public static class InfoUnitExtensions {
         }
         return infoUnits;
     }
-
 }

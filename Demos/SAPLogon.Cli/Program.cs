@@ -11,6 +11,7 @@ AssertionTicket t = new() {
     Subject = subject,
     RcptSysID = "NWA",
     RcptSysClient = "752",
+    Language = SAPLanguage.ES
 };
 string ticket = t.Create();
 Console.WriteLine($@"Assertion Ticket for ""{t.User}"" issued by ""{t.SysID}""");
@@ -31,7 +32,8 @@ Console.WriteLine($@"User (UTF8): {t1.GetValue(InfoUnitID.UTF8_User)}");
 Console.WriteLine($@"Issuing System ID (UTF8): {t1.GetValue(InfoUnitID.UTF8_CreateSID)}");
 Console.WriteLine($@"Issuing System Client (UTF8): {t1.GetValue(InfoUnitID.UTF8_CreateClient)}");
 Console.WriteLine($@"Creation Time (UTF8): {t1.GetValue(InfoUnitID.UTF8_CreateTime)}");
-Console.WriteLine($@"Language (UTF8): {t1.GetValue(InfoUnitID.Language)}");
+Console.WriteLine($@"Language (UTF8): {t1.GetValue(InfoUnitID.UTF8_Language)}");
+Console.WriteLine($@"Subject: {t1.Subject}");
 Console.WriteLine();
 
 Console.WriteLine($@"Getting certificate by subject  ""{subject}""");
