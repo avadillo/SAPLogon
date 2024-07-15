@@ -111,7 +111,7 @@ public class WSModel : PageModel {
 
     private async  Task<string> ExecuteService(string service, string mysapsso2) {
         // Call the SAP Web Service and wait for the response
-        Uri uri = new(@"https://sapnwa.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services");
+        Uri uri = new(@"https://demo.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services");
 
         var soapAction = @"urn:sap-com:document:sap:soap:functions:mc-style:ZSSODEMO:" + Service switch {
             "1" => "ZGetSystemInfoRequest",
