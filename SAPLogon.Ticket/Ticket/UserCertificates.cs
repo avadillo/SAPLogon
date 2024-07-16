@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 
 namespace SAPTools.Ticket;
@@ -8,16 +9,35 @@ public static class UserCertificates {
 
     private static Lazy<Task<List<X509Certificate2>>> _certificates = new(GetCertificatesAsync);
 
-    private static async Task<List<X509Certificate2>> GetCertificatesAsync() => await Task.Run(() => {
-        AlgComparer comparer = new();
-        X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
+    private static Task<List<X509Certificate2>> GetCertificatesAsync() => 
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GetCertificatesWindowsAsync() : GetCertificatesLinuxAsync();
+
+    private static Task<List<X509Certificate2>> GetCertificatesWindowsAsync() => Task.Run(() => {
+        using X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);
-        List<X509Certificate2> certList = [.. store.Certificates
+        return store.Certificates
             .Find(X509FindType.FindBySubjectName, "SAP Tools", false)
             .Cast<X509Certificate2>()
-            .OrderBy(x => x.Subject, comparer)]; // For demo purposes, sort the certificates by algorithm
-        store.Close();
-        return certList;
+            .OrderBy(x => x.Subject, new AlgComparer())
+            .ToList();
+    });
+
+    private static Task<List<X509Certificate2>> GetCertificatesLinuxAsync() => Task.Run(() => {
+        string[] certFiles = Directory.GetFiles("/var/ssl/private/", "*.p12");
+        List<X509Certificate2> certificates = [];
+
+        foreach(string file in certFiles) {
+            try {
+                X509Certificate2 cert = new(file);
+                if(cert.Subject.Contains("SAP Tools")) {
+                    certificates.Add(cert);
+                }
+            } catch(Exception ex) {
+                Console.WriteLine($"Error loading certificate from file {file}: {ex.Message}");
+            }
+        }
+
+        return certificates.OrderBy(x => x.Subject, new AlgComparer()).ToList();
     });
 
     // Refresh the certificates list

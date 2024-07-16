@@ -10,7 +10,6 @@ public class RedirectModel : PageModel {
     public string Message { get; set; } = "";
 
     public void OnGet(string? user, string tx) {
-        string domain = GetDomainFromHost(HttpContext.Request.Host.Value);
         user = user?.ToUpper() ?? "DEMOUSER";
 
         if(_forbiddenUsers.Any(fu => user.Equals(fu, StringComparison.OrdinalIgnoreCase))) {
@@ -28,7 +27,7 @@ public class RedirectModel : PageModel {
         CookieOptions cookieOptions = new() {
             Path = "/",
             Secure = true,
-            Domain = $".{domain}",
+            Domain = $".saptools.mx",
             SameSite = SameSiteMode.Lax
         };
 
@@ -38,10 +37,13 @@ public class RedirectModel : PageModel {
 
         Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
 
-        string url = $"https://demos.{domain}/sap/bc/gui/sap/its/webgui";
-        if(!String.IsNullOrEmpty(tx)) url += $"?~transaction={tx}";
+        string baseUrl = IsTestEnvironment(HttpContext.Request.Host.Value) ?
+            "https://demos-test.saptools.mx/sap/bc/gui/sap/its/webgui" :
+            "https://demos.saptools.mx/sap/bc/gui/sap/its/webgui";
 
-        Response.Redirect(url);
+        string url = !String.IsNullOrEmpty(tx) ? $"{baseUrl}?~transaction={tx}" : baseUrl;
+        Response.Headers["Refresh"] = $"0;url={url}";
+        //Response.Redirect(url);
     }
 
 
@@ -52,5 +54,10 @@ public class RedirectModel : PageModel {
     private static string GetDomainFromHost(string hostValue) {
         string[] values = hostValue.Split('.');
         return values.Length >= 2 ? $"{values[^2]}.{values[^1]}" : "saptools.mx";
+
+    }
+
+    private static bool IsTestEnvironment(string hostValue) {
+        return hostValue.Contains("localhost") || hostValue.Contains("test", StringComparison.OrdinalIgnoreCase);
     }
 }

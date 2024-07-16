@@ -5,12 +5,11 @@
 @{
     ViewData["Title"] = "WebGUI Demo";
 }
-
 <div class="container mt-5">
     <h3 class="text-center">@ViewData["Title"]</h3>
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <form method="post">
+            <form id="MyForm" method="post">
                 <div class="form-group">
                     <label for="Cert">Cert ID:</label>
                     <select asp-for="Cert" asp-items="Model.CertList" class="form-control">
@@ -29,13 +28,43 @@
                         <option value="">-- Select a language --</option>
                     </select>
                 </div>
+                <div>
+                    <label>
+                        <input type="radio" name="navigationType" value="embedded" checked>
+                        Embedded
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        <input type="radio" name="navigationType" value="redirect">
+                        Redirect
+                    </label>
+                </div>
                 <div class="form-group text-center">
                     <button type="submit" asp-page-handler="Submit" class="btn btn-primary">Submit</button>
                 </div>
+
             </form>
             <div class="mt-3">
                 <p class="text-monospace">@Model.TxtStatus</p>
             </div>
         </div>
+        <iframe id="webguiFrame" runat="server" width="100%" height="600px">
+            Your browser does not support iframes.
+        </iframe>
+
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function setIframeSrc() {
+            var iframe = document.getElementById("webguiFrame");
+            if (iframe) {
+                iframe.src = "@Model.GetIframeUrl()";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", setIframeSrc);
+    </script>
+}

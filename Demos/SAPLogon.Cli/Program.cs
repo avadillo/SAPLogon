@@ -75,3 +75,6 @@ foreach(var a in WebServices.InstalledLanguages.Result)
     Console.WriteLine($"{a.SAPCode} - {a.ISOCode} - {a.Name}");
 sw.Stop();
 Console.WriteLine($"Elapsed time: {sw.ElapsedMilliseconds} ms");
+
+
+Console.WriteLine(UserCertificates.GetWebsiteLoadCertificates().Result);  

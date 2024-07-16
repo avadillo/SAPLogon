@@ -5,6 +5,7 @@ using SAPLogon.Web.Common;
 using SAPTools.Ticket;
 using SAPTools.Ticket.Extensions;
 using System.Data;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 
@@ -41,7 +42,7 @@ public class WSModel : PageModel {
     public async Task InitializeLists() {
         // Start both asynchronous operations
         Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
-            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.FriendlyName, Value = cert.Subject }).ToList());
+            .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.Subject, Value = cert.Subject }).ToList());
 
         Task<List<SelectListItem>> usersTask = WebServices.WebServiceUsers
             .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
@@ -56,15 +57,15 @@ public class WSModel : PageModel {
         CertList = await certificatesTask;
         UserList = await usersTask;
         LangList = await languagesTask;
-        ServiceList = new() {
+        ServiceList = [
             new SelectListItem { Text = "1 - Get System Info", Value = "1" },
             new SelectListItem { Text = "2 - Get Installed Languages", Value = "2" },
             new SelectListItem { Text = "3 - List Available Web GUI Users", Value = "3" },
             new SelectListItem { Text = "4 - List Available WebService Users", Value = "4" }
-        };
-        if (CertList.Count > 0) Cert = CertList[CertList.Count - 1].Value;
+        ];
+        Cert = "OU=SAP Tools, CN=SAP SSO ECDSA P-256";
         if (UserList.Count > 0) UserName = UserList[0].Value;
-        if(ServiceList.Count > 0) Service = "2";
+        if (ServiceList.Count > 0) Service = "2";
     }
 
     public async Task<IActionResult> OnPostSubmit() {
@@ -138,6 +139,8 @@ public class WSModel : PageModel {
         StringBuilder sb = new();
         HttpClient client = new();
 
+        // create a timer
+        Stopwatch sw = new();
         // Prepare the request
         HttpRequestMessage request = new(HttpMethod.Post, uri);
         request.Headers.Add("SOAPAction", soapAction);
@@ -153,9 +156,11 @@ public class WSModel : PageModel {
               .AppendLine(soapEnvelope)
               .AppendLine();
 
+        sw.Start();
         // Send the request and wait for the response
         HttpResponseMessage response = await client.SendAsync(request);
         string responseXML = await response.Content.ReadAsStringAsync();
+        sw.Stop();
 
         sb.AppendLine($"HTTP Status Code: {response.StatusCode}")
           .AppendLine(response.StatusCode == HttpStatusCode.OK ? "" : $"Error: {response.ReasonPhrase}");
@@ -170,10 +175,13 @@ public class WSModel : PageModel {
         if(ParseResponse) {
             try {
                 sb.Append(AsciiTable.CreateTable(responseXML, soapXPathQuery, columns));
+                sb.AppendLine($"\nElapsed time: {sw.ElapsedMilliseconds} ms");
             } catch(Exception ex) {
                 sb.AppendLine($"Error parsing response: {ex.Message}");
             }
-        } else sb.AppendLine(responseXML);
+        } else {
+            sb.AppendLine(responseXML);
+        }
 
         return sb.ToString();
     }
