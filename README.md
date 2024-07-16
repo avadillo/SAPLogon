@@ -3,7 +3,7 @@
 This application generates Logon Tickets for SAP NetWeaver Systems. For more information on using Logon Tickets, see [Using Logon Tickets](https://help.sap.com/doc/saphelp_nw75/7.5.5/en-US/4d/a5ddc832211dcde10000000a42189c/content.htm).
 
 ## Demo System
-Experience the application in action here: [Demo System](https://demos.saptools.mx/).
+Experience the application in action here: [Demo System](https://demo.saptools.mx/).
 
 Analyze the generated MYSAPSSO2 cookie using the [SAP Logon Ticket Decoder](https://saptools.mx/mysapsso2).
 
