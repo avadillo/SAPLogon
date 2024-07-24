@@ -1,28 +1,21 @@
 ﻿@page
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.OutputCaching
+@attribute [OutputCache(Duration = 600)]
 
 @{
     ViewData["Title"] = "Index";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/css/site.css">
-</head>
-<body>
     <main>
         <section>
-            <h2>Welcome to Demos @@ SAP Tools</h2>
+            <h1>Welcome to Demo@("@")SAP Tools</h1>
             <p>This site demonstrates the implementation of Single Sign-On (SSO) for SAP applications using Logon and Assertion Tickets. Explore the demos to see how SSO can be seamlessly integrated into SAP environments.</p>
         </section>
         <section>
             <h3>Available Demos</h3>
             <ul>
-                <li><a href="/webgui">WebService</a> - Shows how to use SSO with SAP Web Services.</li>
+                <li><a href="/webservice">WebService</a> - Shows how to use SSO with SAP Web Services.</li>
                 <li><a href="/webgui">WebGUI</a> - SSO Demonstrates SSO with SAP Web GUI.</li>
             </ul>
         </section>
@@ -117,5 +110,3 @@ sapgenpse export_p12 -p $FILENAME -x 12345678 -z 12345678 -f cn ${FILENAME}.pfx<
         </section>
     </main>
 
-</body>
-</html>

@@ -38,8 +38,8 @@ public class RedirectModel : PageModel {
         Response.Cookies.Append("MYSAPSSO2", t.Create(), cookieOptions);
 
         string baseUrl = IsTestEnvironment(HttpContext.Request.Host.Value) ?
-            "https://demos-test.saptools.mx/sap/bc/gui/sap/its/webgui" :
-            "https://demos.saptools.mx/sap/bc/gui/sap/its/webgui";
+            "https://demo-test.saptools.mx/sap/bc/gui/sap/its/webgui" :
+            "https://demo.saptools.mx/sap/bc/gui/sap/its/webgui";
 
         string url = !String.IsNullOrEmpty(tx) ? $"{baseUrl}?~transaction={tx}" : baseUrl;
         Response.Headers["Refresh"] = $"0;url={url}";

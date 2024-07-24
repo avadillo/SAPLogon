@@ -1,32 +1,39 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Http.Extensions;
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Demos @@ SAP Tools </title>
+    <title>@ViewData["Title"]</title>
+
+    <link rel="canonical" href="@($"https://demo.saptools.mx{MyHttpContext.Path}")" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SAPLogon.Web.styles.css" asp-append-version="true" />
     <link rel="shortcut icon" href="/favicon.ico?v=20230623" />
     <link rel="icon" type="image/png" sizes="32x32" href="/ico/favicon-32x32.png?v=20230624" />
     <link rel="icon" type="image/png" sizes="16x16" href="/ico/favicon-16x16.png?v=20230624" />
-
+  
     <!-- Twitter specific meta tags -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:creator" content="@@AbrahamVadillo_" />
-    <meta name="twitter:site" content="@@saptools_" />
-    <meta name="twitter:image" content="https://saplogon.saptools.mx/img/logo.sq.600x600.png?v=20230623" />
+    <meta name="twitter:creator" content="@("@")AbrahamVadillo" />
+    <meta name="twitter:site" content="@("@")saptools_" />
+    <meta name="twitter:image" content="https://demo.saptools.mx/img/logo.sq.600x600.png?v=20230623" />
+
     <!-- OpenGraph meta tags -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://saplogon.saptools.mx/img/logo.sq.600x600.png?v=20230623" />
+    <meta property="og:image" content="https://demo.saptools.mx/img/logo.sq.600x600.png?v=20230623" />
     <meta property="og:image:width" content="600" />
     <meta property="og:image:height" content="600" />
+    <meta property="og:url" content="@($"https://demo.saptools.mx{MyHttpContext.Path}")" />
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">Demos @@ SAP Tools</a>
+                <a class="navbar-brand" asp-area="" asp-page="/index" >Demo@("@")SAP Tools</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -40,7 +47,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/webgui">WebGUI</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Disclaimer">Disclaimer</a>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/disclaimer">Disclaimer</a>
                         </li>
                     </ul>
                 </div>
@@ -57,16 +64,23 @@
         <div class="container py-1">
             <div class="row">
                 <div class="col-md-6 text-md-right">
-                    <p>&copy; @(DateTime.Now.Year) SAP Tools | <a href="/Privacy" class="text-dark">Privacy Policy</a></p>
+                    <p>&copy; @(DateTime.Now.Year) SAP Tools | <a href="/privacy" class="text-dark">Privacy Policy</a></p>
                 </div>
             </div>
         </div>
-    </footer>|x
+    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 
+    @if(WebHostEnvironment.IsProduction() &&
+    MyHttpContext.Request.Host.Host.Contains("saptools.mx") &&
+    !MyHttpContext.Request.Host.Host.Equals("demo.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
+        var redirectUrl = $"https://demo.saptools.mx{MyHttpContext.Request.Path}{MyHttpContext.Request.QueryString}";
+        MyHttpContext.Response.Redirect(redirectUrl, true);
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

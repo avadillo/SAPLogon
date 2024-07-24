@@ -44,10 +44,10 @@ public class WSModel : PageModel {
         Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
             .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.Subject, Value = cert.Subject }).ToList());
 
-        Task<List<SelectListItem>> usersTask = WebServices.WebServiceUsers
+        Task<List<SelectListItem>> usersTask = Catalogs.WebServiceUsers
             .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
 
-        Task<List<SelectListItem>> languagesTask = WebServices.InstalledLanguages
+        Task<List<SelectListItem>> languagesTask = Catalogs.InstalledLanguages
             .ContinueWith(task => task.Result.Select(lang => new SelectListItem { Text = $"{lang.Name} ({lang.ISOCode})", Value = lang.ISOCode }).ToList());
 
         // Wait for both operations to complete
@@ -68,20 +68,20 @@ public class WSModel : PageModel {
         if (ServiceList.Count > 0) Service = "2";
     }
 
-    public async Task<IActionResult> OnPostSubmit() {
+    public async Task OnPostSubmit() {
         if(String.IsNullOrEmpty(Cert)) {
             TxtStatus = "Please select a valid certificate";
-            return Page();
+            return;
         }
 
         if(String.IsNullOrEmpty(UserName)) {
             TxtStatus = "Please select a valid user";
-            return Page();
+            return;
         }
 
         if(String.IsNullOrEmpty(Service)) {
             TxtStatus = "Please select a valid service";
-            return Page();
+            return;
         }
 
         var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(Cert);
@@ -97,12 +97,12 @@ public class WSModel : PageModel {
         if (_language != null) ticket.Language = _language.Value;
 
         TxtStatus = await ExecuteService(Service, ticket.Create());
-        return Page();
+        return;
     }
 
     private async  Task<string> ExecuteService(string service, string mysapsso2) {
         // Call the SAP Web Service and wait for the response
-        Uri uri = new(@"https://demos.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services");
+        Uri uri = new(@"https://demo.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services");
 
         var soapAction = @"urn:sap-com:document:sap:soap:functions:mc-style:ZSSODEMO:" + Service switch {
             "1" => "ZGetSystemInfoRequest",
@@ -126,10 +126,10 @@ public class WSModel : PageModel {
         };
 
         var soapEnv = Service switch {
-            "1" => WebServices.GetSystemInfoEnv(),
-            "2" => WebServices.GetInstalledLanguagesEnv(),
-            "3" => WebServices.GetUsersByGroupEnv("WEBGUI"),
-            "4" => WebServices.GetUsersByGroupEnv("WEBSERVICE"),
+            "1" => Catalogs.GetSystemInfoEnv(),
+            "2" => Catalogs.GetInstalledLanguagesEnv(),
+            "3" => Catalogs.GetUsersByGroupEnv("WEBGUI"),
+            "4" => Catalogs.GetUsersByGroupEnv("WEBSERVICE"),
             _ => throw new InvalidOperationException("Invalid service")
         };
         return await GetResponseAsync(uri, soapAction, soapEnv, soapXPathQuery, columns, mysapsso2);

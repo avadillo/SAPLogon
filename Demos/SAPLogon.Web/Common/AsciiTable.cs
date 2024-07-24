@@ -19,7 +19,7 @@ public static class AsciiTable {
         string intersectionB = "┴";
         string intersectionCross = "┼";
 
-        DataTable dt = WebServices.ParseSoapResponse(responseXML, soapXPathQuery, columns);
+        DataTable dt = Catalogs.ParseSoapResponse(responseXML, soapXPathQuery, columns);
 
         // Calculate maximum width for each column
         var columnWidths = columns.Select(col => col.Length).ToArray();

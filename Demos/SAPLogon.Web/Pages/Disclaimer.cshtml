@@ -1,5 +1,8 @@
-﻿@page "disclaimer"
+﻿@page "/disclaimer"
 @model DisclaimerModel
+@using Microsoft.AspNetCore.OutputCaching
+@attribute [OutputCache(Duration = 600)]
+
 @{
     ViewData["Title"] = "Disclaimer";
 }

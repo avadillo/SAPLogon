@@ -34,10 +34,10 @@ public class WebGuiModel : PageModel {
         Task<List<SelectListItem>> certificatesTask = UserCertificates.Certificates
             .ContinueWith(task => task.Result.Select(cert => new SelectListItem { Text = cert.Subject, Value = cert.Subject }).ToList());
 
-        Task<List<SelectListItem>> usersTask = WebServices.WebGUIUsers
+        Task<List<SelectListItem>> usersTask = Catalogs.WebGUIUsers
             .ContinueWith(task => task.Result.Select(user => new SelectListItem { Text = user.FullName, Value = user.User }).ToList());
 
-        Task<List<SelectListItem>> languagesTask = WebServices.InstalledLanguages
+        Task<List<SelectListItem>> languagesTask = Catalogs.InstalledLanguages
             .ContinueWith(task => task.Result.Select(lang => new SelectListItem { Text = $"{lang.Name} ({lang.ISOCode})", Value = lang.ISOCode }).ToList());
 
         // Wait for both operations to complete
