@@ -22,10 +22,10 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Production
+        run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Production .\SAPLogon.Web\SAPLogon.Web.csproj -o ${{env.DOTNET_ROOT}}/myapp --no-build
+        run: dotnet publish -c Release .\SAPLogon.Web\SAPLogon.Web.csproj -o ${{env.DOTNET_ROOT}}/myapp --no-build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
