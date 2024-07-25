@@ -47,6 +47,8 @@ public class Program {
             app.UseStaticFiles(new StaticFileOptions {
                 OnPrepareResponse = ctx => ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000")
             });
+        } else {
+            app.UseStaticFiles();
         }
         app.MapRazorPages();
         app.Run();
