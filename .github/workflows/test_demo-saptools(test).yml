@@ -22,7 +22,7 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release Demos/SAPLogon.Web/SAPLogon.Web.csproj
 
       - name: dotnet publish
         run: dotnet publish -c Release Demos/SAPLogon.Web/SAPLogon.Web.csproj -o ${{env.DOTNET_ROOT}}/myapp --no-build
