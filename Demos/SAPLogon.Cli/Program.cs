@@ -76,5 +76,4 @@ foreach(var a in Catalogs.InstalledLanguages.Result)
 sw.Stop();
 Console.WriteLine($"Elapsed time: {sw.ElapsedMilliseconds} ms");
 
-
-Console.WriteLine(UserCertificates.GetWebsiteLoadCertificates().Result);  
+Console.WriteLine(UserCertificates.GetWebsiteLoadCertificates().Result);

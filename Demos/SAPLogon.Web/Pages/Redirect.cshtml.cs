@@ -6,7 +6,7 @@ using SAPTools.Ticket;
 namespace SAPLogon.Web.Pages;
 
 public class RedirectModel : PageModel {
-    private readonly string[] _forbiddenUsers = { "DDIC", "SAP*" };
+    private readonly string[] _forbiddenUsers = ["DDIC", "SAP*"];
     public string Message { get; set; } = "";
 
     public void OnGet(string? user, string tx) {
@@ -49,12 +49,6 @@ public class RedirectModel : PageModel {
 
     private void DeleteCookie(string cookieName) {
         try { Response.Cookies.Delete(cookieName); } catch { /* Log or handle the error if necessary */ }
-    }
-
-    private static string GetDomainFromHost(string hostValue) {
-        string[] values = hostValue.Split('.');
-        return values.Length >= 2 ? $"{values[^2]}.{values[^1]}" : "saptools.mx";
-
     }
 
     private static bool IsTestEnvironment(string hostValue) {

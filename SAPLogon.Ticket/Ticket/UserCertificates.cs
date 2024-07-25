@@ -9,7 +9,7 @@ public static class UserCertificates {
 
     private static Lazy<Task<List<X509Certificate2>>> _certificates = new(GetCertificatesAsync);
 
-    private static Task<List<X509Certificate2>> GetCertificatesAsync() => 
+    private static Task<List<X509Certificate2>> GetCertificatesAsync() =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GetCertificatesWindowsAsync() : GetCertificatesLinuxAsync();
 
     private static Task<List<X509Certificate2>> GetCertificatesWindowsAsync() => Task.Run(() => {
@@ -65,7 +65,7 @@ public static class UserCertificates {
     public static async Task<(string, string)> GetTypeAndPosition(string subject) {
         // Get artificial values for SID and Client to send the ticket
         // This is just for building the certificate list for demo purposes
-        var cert = await GetCertificateBySubject(subject);
+        X509Certificate2 cert = await GetCertificateBySubject(subject);
         string alg = cert.PublicKey.Oid.Value switch {
             "1.2.840.10040.4.1" => "DSA",
             "1.2.840.113549.1.1.1" => "RSA",
@@ -74,7 +74,7 @@ public static class UserCertificates {
         };
 
         // Filter the certificates by algorithm and get the index of the thumbprint
-        var certificates = await Certificates;
+        List<X509Certificate2> certificates = await Certificates;
         int index = certificates.Where(x => x.PublicKey.Oid.Value == cert.PublicKey.Oid.Value)
                                 .ToList()
                                 .FindIndex(x => x.Subject == subject);

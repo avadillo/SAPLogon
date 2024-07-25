@@ -16,7 +16,7 @@ public class WebGuiModel : PageModel {
     [BindProperty]
     public string? Language {
         get => _language.ToString();
-        set => _language = value != null ? Enum.Parse<SAPLanguage>(value):null;
+        set => _language = value != null ? Enum.Parse<SAPLanguage>(value) : null;
     }
     [BindProperty]
     public required string NavigationType { get; set; } = "embedded";
@@ -49,7 +49,7 @@ public class WebGuiModel : PageModel {
         LangList = await languagesTask;
 
         Cert = "OU=SAP Tools, CN=SAP SSO ECDSA P-256";
-        if (UserList.Count > 0) UserName = UserList[0].Value;
+        if(UserList.Count > 0) UserName = UserList[0].Value;
     }
 
     public async Task OnPostSubmit() {
@@ -62,7 +62,7 @@ public class WebGuiModel : PageModel {
             TxtStatus = "Please select a valid user";
             return;
         }
-        
+
         var (sysId, sysClient) = await UserCertificates.GetTypeAndPosition(Cert!);
         LogonTicket ticket = new() {
             SysID = sysId,
@@ -99,18 +99,13 @@ public class WebGuiModel : PageModel {
         try { Response.Cookies.Delete(cookieName); } catch { /* Log or handle the error if necessary */ }
     }
 
-    private static string GetDomainFromHost(string hostValue) {
-        var values = hostValue.Split('.');
-        return values.Length >= 2 ? $"{values[^2]}.{values[^1]}" : "saptools.mx";
-    }
-
     private static bool IsTestEnvironment(string hostValue) {
-        return hostValue.Contains("localhost", StringComparison.OrdinalIgnoreCase) 
+        return hostValue.Contains("localhost", StringComparison.OrdinalIgnoreCase)
             || hostValue.Contains("test", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GetHostFromReferer(string? referrerUrl) {
-        if(string.IsNullOrEmpty(referrerUrl)) return "demo.saptools.mx";
+        if(String.IsNullOrEmpty(referrerUrl)) return "demo.saptools.mx";
         Uri uri = new(referrerUrl);
         return uri.Host;
     }

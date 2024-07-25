@@ -48,7 +48,7 @@ public static class Catalogs {
     /// </value>
     public static Task<List<SAPLang>> InstalledLanguages => _installedLangs.Value;
 
-    
+
     public static void ResetInstalledLanguages() => _installedLangs = new(() => GetInstalledLanguages());
     public static void ResetWebGUIUsers() => _webGUIUsers = new(() => GetUsersByGroup("WEBGUI"));
     public static void ResetWebServiceUsers() => _webServiceUsers = new(() => GetUsersByGroup("WEBSERVICE"));
@@ -111,17 +111,16 @@ public static class Catalogs {
             client.DefaultRequestHeaders.Add("MYSAPSSO2", GetMySAPSSO2());
 
             // Create the HTTP content from the soapString, specifying the content type as text/xml.
-            using(HttpContent content = new StringContent(soapString, Encoding.UTF8, "text/xml")) {
-                // Send the SOAP request asynchronously and wait for the response.
-                HttpResponseMessage response = await client.PostAsync(Url, content);
+            using HttpContent content = new StringContent(soapString, Encoding.UTF8, "text/xml");
+            // Send the SOAP request asynchronously and wait for the response.
+            HttpResponseMessage response = await client.PostAsync(Url, content);
 
-                // Check if the response status code indicates success (HTTP 200 OK).
-                if(response.StatusCode == HttpStatusCode.OK) {
-                    // Read the response content as a string asynchronously.
-                    string responseString = await response.Content.ReadAsStringAsync();
-                    // Parse the SOAP response XML into a DataTable and return it.
-                    return ParseSoapResponse(responseString, xPathQuery, columns);
-                }
+            // Check if the response status code indicates success (HTTP 200 OK).
+            if(response.StatusCode == HttpStatusCode.OK) {
+                // Read the response content as a string asynchronously.
+                string responseString = await response.Content.ReadAsStringAsync();
+                // Parse the SOAP response XML into a DataTable and return it.
+                return ParseSoapResponse(responseString, xPathQuery, columns);
             }
         }
         // If the request fails (e.g., due to a network error or an error response from the web service), return an empty DataTable.

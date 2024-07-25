@@ -19,7 +19,7 @@ public class WSModel : PageModel {
     [BindProperty]
     public string? Language {
         get => _language.ToString();
-        set => _language = value != null ? Enum.Parse<SAPLanguage>(value): null;
+        set => _language = value != null ? Enum.Parse<SAPLanguage>(value) : null;
     }
     [BindProperty]
     public string Service { get; set; } = "Languages";
@@ -64,8 +64,8 @@ public class WSModel : PageModel {
             new SelectListItem { Text = "4 - List Available WebService Users", Value = "4" }
         ];
         Cert = "OU=SAP Tools, CN=SAP SSO ECDSA P-256";
-        if (UserList.Count > 0) UserName = UserList[0].Value;
-        if (ServiceList.Count > 0) Service = "2";
+        if(UserList.Count > 0) UserName = UserList[0].Value;
+        if(ServiceList.Count > 0) Service = "2";
     }
 
     public async Task OnPostSubmit() {
@@ -94,13 +94,13 @@ public class WSModel : PageModel {
             Subject = Cert,
         };
 
-        if (_language != null) ticket.Language = _language.Value;
+        if(_language != null) ticket.Language = _language.Value;
 
-        TxtStatus = await ExecuteService(Service, ticket.Create());
+        TxtStatus = await ExecuteService(ticket.Create());
         return;
     }
 
-    private async  Task<string> ExecuteService(string service, string mysapsso2) {
+    private async Task<string> ExecuteService(string mysapsso2) {
         // Call the SAP Web Service and wait for the response
         Uri uri = new(@"https://demo.saptools.mx/sap/bc/srt/rfc/sap/zssodemo/752/ssodemo/services");
 
@@ -148,7 +148,7 @@ public class WSModel : PageModel {
         request.Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
 
         // Log request if needed
-        if(ShowRequest) 
+        if(ShowRequest)
             sb.AppendLine($"Calling {uri}")
               .AppendLine("\nRequest Headers:")
               .AppendLine(String.Join("\n", request.Headers.Concat(request.Content.Headers).Select(header => $"{header.Key}: {String.Join(" ", header.Value)}")))
@@ -185,4 +185,4 @@ public class WSModel : PageModel {
 
         return sb.ToString();
     }
-  }
+}
