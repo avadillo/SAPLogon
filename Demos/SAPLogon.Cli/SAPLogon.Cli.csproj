@@ -8,6 +8,14 @@
     <RootNamespace>SAPTools</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsPublishable>False</IsPublishable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsPublishable>False</IsPublishable>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\SAPLogon.Ticket\SAPLogon.Ticket.csproj" />
     <ProjectReference Include="..\SAPLogon.Web\SAPLogon.Web.csproj" />
