@@ -6,7 +6,7 @@
     @inject IWebHostEnvironment HostEnvironment
     @inject IHttpContextAccessor HttpContextAccessor
     @{
-        string canonicalPath = string.Empty;
+        var canonicalPath = string.Empty;
         if(HttpContextAccessor?.HttpContext is not null) {
             canonicalPath = HttpContextAccessor.HttpContext.Request.Path;
         }
@@ -80,24 +80,24 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 @if (HttpContextAccessor?.HttpContext is not null) {
-    var myHttpContext = HttpContextAccessor.HttpContext;
-    var host = myHttpContext.Request.Host.Host;
-    var pathAndQuery = $"{myHttpContext.Request.Path}{myHttpContext.Request.QueryString}";
+    var httpContext = HttpContextAccessor.HttpContext;
+    var host = httpContext.Request.Host.Host;
+    var pathAndQuery = $"{httpContext.Request.Path}{httpContext.Request.QueryString}";
     var isProduction = HostEnvironment.IsProduction();
-    var redirectUrl = string.Empty;
+    var redirectUrl = String.Empty;
 
-    if (host.EndsWith("saptools.mx", StringComparison.OrdinalIgnoreCase)) {
+    if (host.Contains("saptools.mx", StringComparison.OrdinalIgnoreCase)) {
         if (isProduction && !host.Equals("demo.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
             redirectUrl = $"https://demo.saptools.mx{pathAndQuery}";
         } else if (!isProduction && !host.Equals("demo-test.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
             redirectUrl = $"https://demo-test.saptools.mx{pathAndQuery}";
-        }
+        } 
     }
-    if (!string.IsNullOrEmpty(redirectUrl)) {
-        myHttpContext.Response.Redirect(redirectUrl, true);
-        myHttpContext.Response.StatusCode = 301; // Ensure the status code is set to 301 for permanent redirect
+    if (!String.IsNullOrEmpty(redirectUrl)) {
+        httpContext.Response.Redirect(redirectUrl, true);
+        httpContext.Response.StatusCode = 301;
     }
-}
+} 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
