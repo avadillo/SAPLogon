@@ -79,24 +79,25 @@
     <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @if(HttpContextAccessor?.HttpContext is not null) {
-        HttpContext myHttpContext = HttpContextAccessor.HttpContext;
-        string redirectUrl = string.Empty;
+@if (HttpContextAccessor?.HttpContext is not null) {
+    var myHttpContext = HttpContextAccessor.HttpContext;
+    var host = myHttpContext.Request.Host.Host;
+    var pathAndQuery = $"{myHttpContext.Request.Path}{myHttpContext.Request.QueryString}";
+    var isProduction = HostEnvironment.IsProduction();
+    var redirectUrl = string.Empty;
 
-        string host = myHttpContext.Request.Host.Host;
-        string pathAndQuery = $"{myHttpContext.Request.Path}{myHttpContext.Request.QueryString}";
-
-        if(HostEnvironment.IsProduction() && host.Contains("saptools.mx", StringComparison.OrdinalIgnoreCase) &&
-        !host.Equals("demo.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
+    if (host.EndsWith("saptools.mx", StringComparison.OrdinalIgnoreCase)) {
+        if (isProduction && !host.Equals("demo.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
             redirectUrl = $"https://demo.saptools.mx{pathAndQuery}";
-        } else if(!HostEnvironment.IsProduction() && host.Contains("saptools.mx", StringComparison.OrdinalIgnoreCase) &&
-        !host.Equals("demo-test.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
+        } else if (!isProduction && !host.Equals("demo-test.saptools.mx", StringComparison.OrdinalIgnoreCase)) {
             redirectUrl = $"https://demo-test.saptools.mx{pathAndQuery}";
         }
-        if(!string.IsNullOrEmpty(redirectUrl)) {
-            myHttpContext.Response.Redirect(redirectUrl, true);
-        }
     }
+    if (!string.IsNullOrEmpty(redirectUrl)) {
+        myHttpContext.Response.Redirect(redirectUrl, true);
+        myHttpContext.Response.StatusCode = 301; // Ensure the status code is set to 301 for permanent redirect
+    }
+}
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
