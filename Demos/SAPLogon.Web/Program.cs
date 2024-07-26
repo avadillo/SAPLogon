@@ -34,16 +34,6 @@ public class Program {
         if(!app.Environment.IsDevelopment()) {
             app.UseResponseCompression();
             app.UseResponseCaching();
-            app.Use(async (context, next) => {
-                context.Response.GetTypedHeaders().CacheControl =
-                    new Microsoft.Net.Http.Headers.CacheControlHeaderValue() {
-                        Public = true,
-                        MaxAge = TimeSpan.FromSeconds(300)
-                    };
-                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] = middleware;
-
-                await next();
-            });
             app.UseStaticFiles(new StaticFileOptions {
                 OnPrepareResponse = ctx => ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000")
             });
