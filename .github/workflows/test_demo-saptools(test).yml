@@ -51,14 +51,14 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_77559A5079B949A0899F503C93B12F1E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C64E869AA4F644DAB7D492129BB61663 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8F89A8F5E81F4549B2F5CC7E514FF220 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_BC8C39EC00A84D239FD2B734358E6C2B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C344B0DCF4C04CCC8878AFB569B2F9E1 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FDCDDE439AB849818EB7E81ED6B55972 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'demo-saptools'
+          app-name: demo-saptools
           slot-name: 'test'
-          package: .
+          package: .  
