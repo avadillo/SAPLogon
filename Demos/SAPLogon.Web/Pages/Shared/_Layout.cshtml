@@ -6,9 +6,12 @@
     @inject IWebHostEnvironment HostEnvironment
     @inject IHttpContextAccessor HttpContextAccessor
     @{
-        var canonicalPath = string.Empty;
+        var canonicalPath = "/";
         if(HttpContextAccessor?.HttpContext is not null) {
-            canonicalPath = HttpContextAccessor.HttpContext.Request.Path;
+            var requestPath = HttpContextAccessor.HttpContext.Request.Path;
+            if(!requestPath.Equals("/index", StringComparison.OrdinalIgnoreCase)) {
+                canonicalPath = requestPath;
+            }
         }
     }
     <link rel="canonical" href="@($"https://demo.saptools.mx{canonicalPath}")" />
