@@ -1,6 +1,6 @@
 ﻿@page "/webservice"
-@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-@model WSModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model SAPLogon.Web.Pages.WSModel;
 
 @{
     ViewData["Title"] = "WebService Demo";
@@ -8,31 +8,31 @@
 <div class="container mt-5">
     <h3 class="text-center">@ViewData["Title"]</h3>
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <form method="post">
-                <div class="form-group">
-                    <label for="Cert">Cert ID:</label>
-                    <select asp-for="Cert" asp-items="Model.CertList" class="form-control">
+                <div class="form-floating mb-3">
+                    <select asp-for="Cert" asp-items="Model.CertList" class="form-select">
                         <option value="">-- Select a certificate --</option>
                     </select>
+                    <label for="Cert">Cert ID:</label>
                 </div>
-                <div class="form-group">
-                    <label for="UserName">User ID:</label>
-                    <select asp-for="UserName" asp-items="Model.UserList" class="form-control">
-                        <option value="">-- Select an user name --</option>
+                <div class="form-floating mb-3">
+                    <select asp-for="UserName" asp-items="Model.UserList" class="form-select">
+                        <option value="">-- Select a user name --</option>
                     </select>
+                    <label for="UserName">User ID:</label>
                 </div>
-                <div class="form-group">
-                    <label for="Language">Language:</label>
-                    <select asp-for="Language" asp-items="Model.LangList" class="form-control">
+                <div class="form-floating mb-3">
+                    <select asp-for="Language" asp-items="Model.LangList" class="form-select">
                         <option value="">-- Select a language --</option>
                     </select>
+                    <label for="Language">Language:</label>
                 </div>
-                <div class="form-group">
-                    <label for="Service">Service:</label>
-                    <select asp-for="Service" asp-items="Model.ServiceList" class="form-control">
+                <div class="form-floating mb-3">
+                    <select asp-for="Service" asp-items="Model.ServiceList" class="form-select">
                         <option value="">-- Select a service --</option>
                     </select>
+                    <label for="Service">Service:</label>
                 </div>
                 <div class="form-check form-switch">
                     <input asp-for="ShowRequest" type="checkbox" class="form-check-input" id="ShowRequest">

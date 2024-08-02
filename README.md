@@ -43,6 +43,53 @@ sapgenpse gen_pse -a $ALG -s $SIZE -p ${FILENAME} -x 12345678 "${CN}"
 sapgenpse export_own_cert -p $FILENAME -x 12345678 -o ${FILENAME}.crt
 sapgenpse export_p12 -p $FILENAME -x 12345678 -z 12345678 -f cn ${FILENAME}.pfx
 ```
+The `OpenSSL` command to generate a certificate is as follows:
+```console
+# Choose an algorithm and a key size:
+ALG=RSA
+SIZE=4096
+PASSWORD=12345678
+
+# Set the Common Name
+FILENAME="${ALG}-${SIZE}"
+CN="/OU=SAP Tools/CN=SAP SSO ${ALG} ${SIZE}"
+
+# Generate a private key
+openssl genpkey -algorithm $ALG -out ${FILENAME}.key -pkeyopt rsa_keygen_bits:$SIZE
+
+# Generate a certificate signing request (CSR)
+openssl req -new -key ${FILENAME}.key -out ${FILENAME}.csr -subj "$CN"
+
+# Generate a self-signed certificate
+openssl x509 -req -days 3650 -in ${FILENAME}.csr -signkey ${FILENAME}.key -out ${FILENAME}.crt
+
+# Export the certificate and private key to a PKCS#12 file
+openssl pkcs12 -export -out ${FILENAME}.pfx -inkey ${FILENAME}.key -in ${FILENAME}.crt -password pass:${PASSWORD}
+```
+The `OpenSSL` commands for ECDSA require additional steps:
+```console
+# Choose an algorithm and a key size:
+ALG=ECDSA
+CURVE=prime256v1 # or secp384r1, secp521r1
+PASSWORD=12345678 
+
+# Set the Common Name
+FILENAME="${ALG}-${CURVE}"
+CN="/OU=SAP Tools/CN=SAP SSO ${ALG} ${CURVE}"
+
+# Generate a private key
+openssl ecparam -name $CURVE -genkey -noout -out ${FILENAME}.key
+
+# Generate a certificate signing request (CSR)
+openssl req -new -key ${FILENAME}.key -out ${FILENAME}.csr -subj "$CN"
+
+# Generate a self-signed certificate
+openssl x509 -req -days 3650 -in ${FILENAME}.csr -signkey ${FILENAME}.key -out ${FILENAME}.crt
+
+# Export the certificate and private key to a PKCS#12 file
+openssl pkcs12 -export -out ${FILENAME}.pfx -inkey ${FILENAME}.key -in ${FILENAME}.crt -password pass:${PASSWORD}
+```
+
 
 
 ## Deployment

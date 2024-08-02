@@ -4,7 +4,7 @@ using System.IO.Compression;
 namespace SAPLogon.Web;
 
 public class Program {
-    private static readonly string[] middleware = ["Accept-Encoding"];
+    //private static readonly string[] middleware = ["Accept-Encoding"];
 
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);

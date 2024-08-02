@@ -3,6 +3,7 @@ using SAPTools.Ticket.Extensions;
 using SAPLogon.Web.Common;
 using System.Diagnostics;
 
+Console.WriteLine(UserCertificates.GetWebsiteLoadCertificates().Result);
 string subject = "OU=SAP Tools, CN=SAP SSO ECDSA P-256";
 AssertionTicket t = new() {
     User = "DEMO",

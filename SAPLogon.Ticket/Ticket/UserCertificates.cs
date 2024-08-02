@@ -7,12 +7,12 @@ public static class UserCertificates {
     // This is executed only once when the class is loaded
     public static Task<List<X509Certificate2>> Certificates => _certificates.Value;
 
-    private static Lazy<Task<List<X509Certificate2>>> _certificates = new(GetCertificatesAsync);
+    private static Lazy<Task<List<X509Certificate2>>> _certificates = new(GetCertificates);
 
-    private static Task<List<X509Certificate2>> GetCertificatesAsync() =>
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GetCertificatesWindowsAsync() : GetCertificatesLinuxAsync();
+    private static Task<List<X509Certificate2>> GetCertificates() =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GetCertificatesWindows() : GetCertificatesLinux();
 
-    private static Task<List<X509Certificate2>> GetCertificatesWindowsAsync() => Task.Run(() => {
+    private static Task<List<X509Certificate2>> GetCertificatesWindows() => Task.Run(() => {
         using X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);
         return store.Certificates
@@ -22,7 +22,7 @@ public static class UserCertificates {
             .ToList();
     });
 
-    private static Task<List<X509Certificate2>> GetCertificatesLinuxAsync() => Task.Run(() => {
+    private static Task<List<X509Certificate2>> GetCertificatesLinux() => Task.Run(() => {
         string[] certFiles = Directory.GetFiles("/var/ssl/private/", "*.p12");
         List<X509Certificate2> certificates = [];
 
@@ -41,7 +41,7 @@ public static class UserCertificates {
     });
 
     // Refresh the certificates list
-    public static void Refresh() => _certificates = new Lazy<Task<List<X509Certificate2>>>(GetCertificatesAsync);
+    public static void Refresh() => _certificates = new Lazy<Task<List<X509Certificate2>>>(GetCertificates);
 
     public static async Task<X509Certificate2> GetCertificate(string thumbprint) =>
         (await Certificates).FirstOrDefault(cert => cert.Thumbprint == thumbprint) ?? throw new Exception("Certificate not found");
