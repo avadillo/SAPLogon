@@ -24,7 +24,7 @@ The application supports three types of certificate algorithms: DSA, RSA, and EC
 > **Note:** Please verify that your chosen algorithm is supported by your SAP System: [How can I verify this?](README.md#how-can-i-verify-if-a-specific-certificate-algorithm-is-supported-by-my-sap-netweaver-version)
 
 ## Certificate Generation
-Certificates can be generated using `OpenSSL` or `sapgenpse`. Below is an example of generating a certificate with `sapgenpse`:
+Certificates can be generated using either `OpenSSL` or `sapgenpse`. Below is an example of generating a certificate with `sapgenpse`:
 
 
 ```console
