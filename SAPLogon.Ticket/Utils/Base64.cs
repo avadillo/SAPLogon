@@ -1,4 +1,5 @@
 ﻿namespace SAPTools.Utils;
+
 public static class Base64 {
     private static readonly char[] toBase64 =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -29,6 +30,7 @@ public static class Base64 {
         new(EncodeAsArray(data));
 
     public static byte[] Decode(string data) {
+        //check if the characters in data are included in the base64 alphabet
         char[] tdata = new char[data.Length];
         data.CopyTo(0, tdata, 0, data.Length - 0);
         return Decode(tdata);
@@ -74,41 +76,43 @@ public static class Base64 {
     }
 
     private static byte[] Decode(char[] data) {
-        int end;
-        for(end = data.Length;
-            end > 0 && data[end - 1] == EqualsCharacter;
-            --end) { }
+        try {
+            int end;
+            for(end = data.Length;
+                end > 0 && data[end - 1] == EqualsCharacter;
+                --end) { }
 
-        int resultLength = end / 4 * 3;
-        int x = end % 4;
-        if(x == 2) ++resultLength;
-        else if(x == 3) resultLength += 2;
+            int resultLength = end / 4 * 3;
+            int x = end % 4;
+            if(x == 2) ++resultLength;
+            else if(x == 3) resultLength += 2;
 
-        byte[] result = new byte[resultLength];
-        int i = 0;
+            byte[] result = new byte[resultLength];
+            int i = 0;
 
-        byte a, b, c, d;
-        int pos;
-        for(pos = 0; end >= 4; end -= 4) {
-            a = fromBase64[data[i + 0]];
-            b = fromBase64[data[i + 1]];
-            c = fromBase64[data[i + 2]];
-            d = fromBase64[data[i + 3]];
-            result[pos++] = (byte)((a & IIIIIIII) << 2 | (b & OOIIOOOO) >> 4);
-            result[pos++] = (byte)((b & OOOOIIII) << 4 | (c & OOIIIIOO) >> 2);
-            result[pos++] = (byte)((c & OOOOOOII) << 6 | (d & IIIIIIII) >> 0);
-            i += 4;
-        }
-
-        if(end >= 2) {
-            a = fromBase64[data[i + 0]];
-            b = fromBase64[data[i + 1]];
-            c = fromBase64[data[i + 2]];
-            result[pos] = (byte)((a & IIIIIIII) << 2 | (b & OOIIOOOO) >> 4);
-            if(end >= 3) {
-                result[pos + 1] = (byte)((b & OOOOIIII) << 4 | (c & OOIIIIOO) >> 2);
+            byte a, b, c, d;
+            int pos;
+            for(pos = 0; end >= 4; end -= 4) {
+                a = fromBase64[data[i + 0]];
+                b = fromBase64[data[i + 1]];
+                c = fromBase64[data[i + 2]];
+                d = fromBase64[data[i + 3]];
+                result[pos++] = (byte)((a & IIIIIIII) << 2 | (b & OOIIOOOO) >> 4);
+                result[pos++] = (byte)((b & OOOOIIII) << 4 | (c & OOIIIIOO) >> 2);
+                result[pos++] = (byte)((c & OOOOOOII) << 6 | (d & IIIIIIII) >> 0);
+                i += 4;
             }
+
+            if(end >= 2) {
+                a = fromBase64[data[i + 0]];
+                b = fromBase64[data[i + 1]];
+                c = fromBase64[data[i + 2]];
+                result[pos] = (byte)((a & IIIIIIII) << 2 | (b & OOIIOOOO) >> 4);
+                if(end >= 3) result[pos + 1] = (byte)((b & OOOOIIII) << 4 | (c & OOIIIIOO) >> 2);
+            }
+            return result.Length == 0 ? throw new Exception("Invalid Base64 data") : result;
+        } catch(Exception e) {
+            throw new Exception("Invalid Base64 data", e);
         }
-        return result;
     }
 }
