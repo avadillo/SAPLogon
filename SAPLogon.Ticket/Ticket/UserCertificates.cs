@@ -23,12 +23,12 @@ public static class UserCertificates {
     });
 
     private static Task<List<X509Certificate2>> GetCertificatesLinux() => Task.Run(() => {
-        string[] certFiles = Directory.GetFiles("/var/ssl/private/", "*.p12");
+        string[] certFiles = Directory.GetFiles("/etc/ssl/private/", "*.p12");
         List<X509Certificate2> certificates = [];
 
         foreach(string file in certFiles) {
             try {
-                X509Certificate2 cert = new(file);
+                X509Certificate2 cert = X509CertificateLoader.LoadCertificateFromFile(file);
                 if(cert.Subject.Contains("SAP Tools")) {
                     certificates.Add(cert);
                 }

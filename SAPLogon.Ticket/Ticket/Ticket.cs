@@ -98,7 +98,7 @@ public abstract class Ticket {
 
         // The following InfoUnits do not need an encoding
         InfoUnits.Add(new(InfoUnitID.ValidTimeInM, ValidTime % 60));
-        if(ValidTime < 60) InfoUnits.Add(new(InfoUnitID.ValidTimeInH, ValidTime / 60));
+        if(ValidTime > 60) InfoUnits.Add(new(InfoUnitID.ValidTimeInH, ValidTime / 60));
         InfoUnits.Add(new(InfoUnitID.UTF8_User, User));
         if(IsRFC) InfoUnits.Add(new(InfoUnitID.RFC, "X"));
     }
