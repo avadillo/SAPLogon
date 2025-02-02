@@ -112,7 +112,7 @@ public abstract class Ticket {
     }
 
     public static Ticket ParseTicket(string base64Ticket) {
-        byte[] ticket = SAPTools.Utils.Base64.Decode(WebUtility.UrlDecode(WebUtility.HtmlDecode(base64Ticket)));
+        byte[] ticket = SAPTools.Utils.Base64.Decode(WebUtility.HtmlDecode(base64Ticket));
         return ParseTicket(ticket);
     }
 
